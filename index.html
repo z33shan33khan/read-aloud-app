@@ -15,6 +15,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<!-- OCR is loaded on demand only for scanned or badly encoded PDF pages. -->
 <style>
   :root{
     --bg:#1e1c19; --panel:#282521; --control:#343029; --control-bd:#45403a;
@@ -135,8 +136,12 @@
   <div id="drawer-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
   <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 max-w-[82vw] panel border-r flex flex-col drawer-closed transition-transform duration-200" style="border-color:var(--control-bd);">
     <div class="flex items-center justify-between px-3 py-3 border-b shrink-0" style="border-color:var(--control-bd);">
-      <span class="text-[11px] font-semibold tracking-wide" style="color:var(--muted);">CHAPTER INDEX</span>
+      <span id="sidebar-title" class="text-[11px] font-semibold tracking-wide" style="color:var(--muted);">PAGES</span>
       <button id="sidebar-close-btn" class="text-xl font-bold leading-none px-2" style="color:var(--muted);">&times;</button>
+    </div>
+    <div class="grid grid-cols-2 gap-2 px-3 py-2 shrink-0">
+      <button id="sidebar-pages-tab" class="control-btn btn-accent rounded-lg py-2 text-xs font-semibold">Pages</button>
+      <button id="sidebar-chapters-tab" class="control-btn rounded-lg py-2 text-xs font-semibold">Chapters</button>
     </div>
     <div id="sidebar-list" class="flex-1 overflow-y-auto py-2"></div>
   </aside>
@@ -148,29 +153,57 @@
     <select id="voice-select" class="w-full px-3 py-2.5 pr-8 rounded-xl text-ellipsis overflow-hidden whitespace-nowrap">
       <option value="">Loading voices...</option>
     </select>
-    <div class="flex items-center gap-3 text-xs">
-      <span class="font-medium min-w-[38px]" style="color:var(--muted);">Speed</span>
-      <input id="speed-slider" type="range" min="80" max="350" value="181" class="flex-1">
-      <span id="speed-val" class="font-medium min-w-[52px] text-right" style="color:var(--fg);">181 wpm</span>
+    <p class="text-[10px] -mt-1" style="color:var(--muted);">These are your device’s system voices. For native Urdu (or other languages), open <b>Voice Manager</b> and follow the install steps, then pick the voice here.</p>
+
+    <div class="flex flex-col gap-1.5">
+      <div class="flex items-center gap-3 text-xs">
+        <span class="font-medium min-w-[38px]" style="color:var(--muted);">Speed</span>
+        <input id="speed-slider" type="range" min="50" max="400" step="1" value="100" class="flex-1">
+        <span id="speed-val" class="font-medium min-w-[72px] text-right" style="color:var(--fg);">1.00×</span>
+      </div>
+      <div class="flex flex-wrap gap-1.5">
+        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="0.75">0.75×</button>
+        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="1">1×</button>
+        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="1.1">1.1×</button>
+        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="1.25">1.25×</button>
+        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="1.5">1.5×</button>
+        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="1.75">1.75×</button>
+        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="2">2×</button>
+        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="2.5">2.5×</button>
+        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="3">3×</button>
+      </div>
     </div>
     
-    <div class="flex flex-wrap gap-2">
-      <select id="font-family-select" class="px-3 py-2 pr-8 rounded-xl flex-1 min-w-[110px]">
-        <option value="Literata, serif" selected>Literata</option>
-        <option value="Inter, sans-serif">Inter</option>
-        <option value="Lora, serif">Lora</option>
-        <option value="'Noto Nastaliq Urdu', serif">Urdu (Nastaliq)</option>
-        <option value="'Noto Serif SC', serif">Chinese (Serif)</option>
-        <option value="'Noto Sans JP', sans-serif">Japanese (Sans)</option>
-        <option value="Amiri, serif">Arabic (Amiri)</option>
-      </select>
-      <select id="font-size-select" class="px-3 py-2 pr-8 rounded-xl">
-        <option value="16">16 pt</option>
-        <option value="18">18 pt</option>
-        <option value="19" selected>19 pt</option>
-        <option value="21">21 pt</option>
-        <option value="24">24 pt</option>
-      </select>
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center gap-2">
+        <select id="font-family-select" class="px-3 py-2 pr-8 rounded-xl flex-1 min-w-0 text-sm">
+          <option value="Literata, Georgia, serif" selected>Literata (web)</option>
+          <option value="Inter, system-ui, sans-serif">Inter (web)</option>
+          <option value="Georgia, 'Times New Roman', Times, serif">Georgia / Times</option>
+          <option value="'Times New Roman', Times, serif">Times New Roman</option>
+          <option value="Arial, Helvetica, sans-serif">Arial</option>
+          <option value="'Segoe UI', system-ui, sans-serif">Segoe UI (Windows)</option>
+          <option value="'Helvetica Neue', Helvetica, Arial, sans-serif">Helvetica</option>
+          <option value="Verdana, Geneva, sans-serif">Verdana</option>
+          <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
+          <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+          <option value="'Courier New', Courier, monospace">Courier New</option>
+          <option value="Consolas, 'Courier New', monospace">Consolas</option>
+          <option value="'Palatino Linotype', Palatino, serif">Palatino</option>
+          <option value="Garamond, serif">Garamond</option>
+          <option value="'Noto Nastaliq Urdu', 'Noto Nastaliq', serif">Urdu Nastaliq</option>
+          <option value="'Noto Serif SC', 'Songti SC', serif">Chinese Serif</option>
+          <option value="'Noto Sans JP', 'Hiragino Sans', sans-serif">Japanese Sans</option>
+          <option value="Amiri, 'Traditional Arabic', serif">Arabic (Amiri)</option>
+          <option value="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">System UI</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-3 text-xs">
+        <span class="font-medium min-w-[38px]" style="color:var(--muted);">Size</span>
+        <input id="font-size-slider" type="range" min="12" max="42" step="1" value="19" class="flex-1">
+        <span id="font-size-val" class="font-medium min-w-[42px] text-right" style="color:var(--fg);">19 pt</span>
+      </div>
+      <input id="custom-font-input" type="text" placeholder="Or type any installed font name (e.g. Calibri, Mangal)…" class="control-btn px-3 py-2 rounded-xl text-xs w-full">
     </div>
 
     <div class="flex flex-col gap-2">
@@ -242,14 +275,108 @@
 
   <!-- Voice Manager Modal -->
   <div id="voice-manager-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] items-center justify-center p-4 hidden flex">
-    <div class="panel rounded-xl p-4 max-w-md w-full shadow-2xl flex flex-col gap-3 border max-h-[80dvh]" style="border-color:var(--control-bd);">
-      <div class="flex items-center justify-between border-b pb-2" style="border-color:var(--control-bd);">
+    <div class="panel rounded-xl p-4 max-w-md w-full shadow-2xl flex flex-col gap-3 border max-h-[85dvh]" style="border-color:var(--control-bd);">
+      <div class="flex items-center justify-between border-b pb-2 shrink-0" style="border-color:var(--control-bd);">
         <h3 class="text-base font-bold" style="color:var(--fg);">Voice Manager</h3>
         <button id="close-voice-manager-btn" class="text-xl font-bold" style="color:var(--muted);">&times;</button>
       </div>
-      <p class="text-xs" style="color:var(--muted);">High-quality neural voices (like Piper) are installed natively on your device. If your selected translation language is missing, use the button below to install it via Google TTS.</p>
-      <div id="voice-status-list" class="flex-1 overflow-y-auto space-y-2 min-h-[50px] text-sm"></div>
-      <button id="install-tts-btn" class="control-btn btn-accent px-4 py-2.5 rounded-xl text-sm w-full">Open Android TTS Settings</button>
+
+      <div class="overflow-y-auto flex-1 flex flex-col gap-3 min-h-0">
+
+        <!-- System voices status -->
+        <div class="rounded-xl border p-3 space-y-2" style="border-color:var(--control-bd);background:var(--control);">
+          <div class="text-[11px] font-semibold tracking-wide" style="color:var(--gold);">SYSTEM / BROWSER VOICES (used for reading)</div>
+          <div id="voice-status-summary" class="text-xs leading-relaxed" style="color:var(--fg);">Checking installed voices…</div>
+          <div id="voice-status-list" class="text-[11px] space-y-1 max-h-28 overflow-y-auto" style="color:var(--muted);"></div>
+          <button id="refresh-voices-btn" class="control-btn px-3 py-1.5 rounded-lg text-[11px] w-full">Refresh voice list</button>
+        </div>
+
+        <!-- Chrome: Piper extension as voice provider -->
+        <div class="rounded-xl border p-3 space-y-2" style="border-color:var(--gold);background:var(--control);">
+          <div class="text-[11px] font-semibold tracking-wide" style="color:var(--gold);">CHROME — BEST WAY TO GET PIPER / URDU VOICES</div>
+          <p class="text-[11px] leading-relaxed" style="color:var(--fg);">
+            Edge already has good Urdu voices. Chrome usually does not. The easiest fix that keeps <b>this</b> interface is:
+          </p>
+          <ol class="text-[11px] leading-relaxed list-decimal pl-4 space-y-1" style="color:var(--muted);">
+            <li>Install the free extension
+              <a href="https://chromewebstore.google.com/detail/piper-text-to-speech-voic/ppnfahcipommelgaapjalhooaeeblmeg" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:underline;">Piper Text-to-Speech Voices</a>
+            </li>
+            <li>Open the extension once and download the Urdu voices you want (e.g. Fasih, Aegis)</li>
+            <li>Close the extension — you do <b>not</b> need its GUI for reading</li>
+            <li>Return here → tap <b>Refresh voice list</b> above</li>
+            <li>In Settings → Voice, select the new Piper voice and read with your own interface</li>
+          </ol>
+          <p class="text-[10px] leading-relaxed" style="color:var(--muted);">
+            The extension only registers Piper models with Chrome’s speech engine. After that, this Pro Reader can use them like any system voice. Your highlighting, speed, library and layout stay exactly as they are.
+          </p>
+        </div>
+
+        <!-- How to get native Urdu / other languages -->
+        <details class="rounded-xl border overflow-hidden" style="border-color:var(--control-bd);">
+          <summary class="px-3 py-2 text-xs font-semibold cursor-pointer select-none" style="background:var(--control);color:var(--fg);">Other options (Windows system voices, Android, etc.)</summary>
+          <div class="px-3 py-2 text-[11px] leading-relaxed space-y-3" style="color:var(--muted);">
+            <p style="color:var(--fg);">Reading uses the voices installed on your device. Download a good language pack once, then select it in Settings → Voice.</p>
+
+            <div>
+              <div class="font-semibold mb-1" style="color:var(--gold);">Windows 11 (works well in Edge)</div>
+              <ol class="list-decimal pl-4 space-y-1">
+                <li>Open <b>Settings → Time &amp; language → Language &amp; region</b></li>
+                <li>Click <b>Add a language</b> → search <b>Urdu</b> (prefer Pakistan)</li>
+                <li>Tick <b>Text-to-speech</b> and install (you can leave display language unchanged)</li>
+                <li>Optional: Settings → Time &amp; language → Speech → Manage / Add voices</li>
+                <li>Close and reopen this page, then choose the new <code>ur</code> voice in Settings</li>
+              </ol>
+            </div>
+
+            <div>
+              <div class="font-semibold mb-1" style="color:var(--gold);">Android</div>
+              <ol class="list-decimal pl-4 space-y-1">
+                <li>Install a dedicated Urdu TTS engine (recommended: <b>Rehnuma Awaz</b> from Play Store)</li>
+                <li>Open device <b>Settings → System → Languages &amp; input → Text-to-speech</b></li>
+                <li>Set the preferred engine to Rehnuma Awaz (or Google TTS with Urdu data)</li>
+                <li>Download the Urdu voice data inside that engine if asked</li>
+                <li>Return here, refresh voices, and select the Urdu voice</li>
+              </ol>
+            </div>
+
+            <div>
+              <div class="font-semibold mb-1" style="color:var(--gold);">Other languages</div>
+              <p>Same idea: install the language’s Text-to-speech pack on Windows, or a good offline engine on Android (Google TTS language data, or a language-specific app). Then pick the matching voice in this app’s Settings.</p>
+            </div>
+
+            <p class="text-[10px]">After installing, use the “Refresh voice list” button above or reopen the page so the browser sees the new voices.</p>
+          </div>
+        </details>
+
+        <!-- Piper section -->
+        <div class="border-t pt-2 space-y-2" style="border-color:var(--control-bd);">
+          <div class="text-[11px] font-semibold" style="color:var(--muted);">PIPER MODELS (this page’s own cache)</div>
+          <p class="text-[10px] leading-relaxed" style="color:var(--muted);">Optional: download models here for backup or future use. For actual reading in Chrome, prefer the <b>Piper Text-to-Speech Voices</b> extension above — it registers voices so they appear in the main Voice list of this app.</p>
+          <div class="flex gap-2">
+            <input id="piper-search" type="search" placeholder="Search language, voice or quality..." class="control-btn px-3 py-2 rounded-lg text-xs min-w-0 flex-1">
+            <button id="load-piper-catalog" class="control-btn btn-accent px-3 py-2 rounded-lg text-xs shrink-0">Load voices</button>
+          </div>
+          <div id="piper-download-status" class="text-[11px] min-h-[16px]" style="color:var(--muted);">Catalogue not loaded.</div>
+          <div id="piper-progress-wrap" class="hidden flex flex-col gap-1">
+            <div class="flex items-center justify-between text-[10px]" style="color:var(--muted);">
+              <span id="piper-progress-label">Preparing download…</span>
+              <span id="piper-progress-percent">0%</span>
+            </div>
+            <div class="w-full h-2 rounded-full overflow-hidden" style="background:var(--control-bd);">
+              <div id="piper-progress-bar" class="h-full rounded-full" style="width:0%;background:var(--gold);"></div>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span id="piper-progress-size" class="text-[10px]" style="color:var(--muted);">0 MB</span>
+              <button id="piper-cancel-download" class="control-btn rounded-lg px-2 py-1 text-[10px]">Cancel download</button>
+            </div>
+          </div>
+          <div id="piper-voice-list" class="overflow-y-auto space-y-2 min-h-[80px] max-h-40 text-sm"></div>
+          <div class="text-[11px] font-semibold pt-1" style="color:var(--muted);">DOWNLOADED ON THIS DEVICE</div>
+          <div id="piper-cached-list" class="space-y-2 text-xs"></div>
+        </div>
+
+        <button id="install-tts-btn" class="control-btn px-4 py-2 rounded-xl text-xs w-full shrink-0">Open device text-to-speech settings</button>
+      </div>
     </div>
   </div>
 
@@ -288,9 +415,12 @@ const WORDS_PER_PAGE = 300;
 let appState = { 
   rawText: "", lines: [], sentences: [], pages: [], 
   currentPageIndex: 0, currentSentenceIndex: 0, currentWordIndex: -1,
-  isPlaying: false, isPaused: false, voices: [], selectedVoice: null, speedWpm: 181, 
+  isPlaying: false, isPaused: false, voices: [], selectedVoice: null,
+  speechRate: 1.0,          // 1.0 = normal; maps to SpeechSynthesisUtterance.rate
+  speedWpm: 180,            // approximate WPM used only for "time left" estimate
   darkMode: true, customPronunciations: {}, currentUrl: '', currentBookId: null,
-  highlightMode: 'sentence-word', autoTranslate: false, translateLang: '', bookmarks: []
+  highlightMode: 'sentence-word', autoTranslate: false, translateLang: '', bookmarks: [],
+  fontSize: 19
 };
 
 try { 
@@ -301,13 +431,14 @@ try {
 const $ = id => document.getElementById(id);
 const readerBox = $('reader-box'), readerOutput = $('reader-output'), playBtn = $('play-btn'),
 stopBtn = $('stop-btn'), voiceSelect = $('voice-select'), speedSlider = $('speed-slider'), speedVal = $('speed-val'),
-fontFamilySelect = $('font-family-select'), fontSizeSelect = $('font-size-select'),
+fontFamilySelect = $('font-family-select'),
 statusText = $('status-text'), timeRemainingText = $('time-remaining-text'),
 pageCounterText = $('page-counter-text'), pasteBtn = $('paste-btn'), openBtn = $('open-btn'),
 fileInput = $('file-input'), docStatusSubtitle = $('doc-status-subtitle'), themeToggleBtn = $('theme-toggle-btn'),
 sheet = $('settings-sheet'), linkModal = $('link-modal'), urlInput = $('url-input'), linkStatus = $('link-status'),
 highlightModeSelect = $('highlight-mode-select'), translateLangSelect = $('translate-lang-select'),
 autoTranslateToggle = $('auto-translate-toggle'), sidebar = $('sidebar'), sidebarList = $('sidebar-list');
+const fontSizeSlider = $('font-size-slider'), fontSizeVal = $('font-size-val'), customFontInput = $('custom-font-input');
 
 const synth = window.speechSynthesis;
 let activeUtterance = null;
@@ -315,10 +446,11 @@ if(!synth) $('tts-warn').style.display = 'block';
 
 /* ---------- IndexedDB Library ---------- */
 const dbPromise = new Promise((resolve, reject) => {
-  const req = indexedDB.open('ProReaderLibrary', 1);
+  const req = indexedDB.open('ProReaderLibrary', 2);
   req.onupgradeneeded = e => {
     const db = e.target.result;
     if (!db.objectStoreNames.contains('books')) db.createObjectStore('books', { keyPath: 'id' });
+    if (!db.objectStoreNames.contains('piperVoices')) db.createObjectStore('piperVoices', { keyPath: 'id' });
   };
   req.onsuccess = e => resolve(e.target.result);
   req.onerror = e => reject(e);
@@ -357,21 +489,84 @@ function getRec(){ try{ const m = JSON.parse(localStorage.getItem(POS_KEY) || '{
 function saveSettings(){
   try{
     localStorage.setItem(SET_KEY, JSON.stringify({ 
-      speed: appState.speedWpm, dark: appState.darkMode, ff: fontFamilySelect.value, fs: fontSizeSelect.value, 
-      voice: appState.selectedVoice ? appState.selectedVoice.name : null, hl: appState.highlightMode,
-      tl: appState.translateLang, at: appState.autoTranslate
+      rate: appState.speechRate,
+      speed: appState.speedWpm,
+      dark: appState.darkMode,
+      ff: fontFamilySelect.value,
+      fs: appState.fontSize,
+      customFont: customFontInput ? customFontInput.value : '',
+      voice: appState.selectedVoice ? appState.selectedVoice.name : null,
+      hl: appState.highlightMode,
+      tl: appState.translateLang,
+      at: appState.autoTranslate
     }));
   }catch(e){}
 }
 function saveBookmarks(){ try{ localStorage.setItem(BM_KEY, JSON.stringify(appState.bookmarks)); }catch(e){} }
 
+function rateToWpm(rate) {
+  // Approximate: 1.0× ≈ 180 wpm for typical English narration
+  return Math.round(Math.max(40, Math.min(600, rate * 180)));
+}
+
+function applySpeechRate(rate, { restart = false } = {}) {
+  rate = Math.round(rate * 100) / 100; // 2 decimal places
+  rate = Math.min(4, Math.max(0.5, rate));
+  appState.speechRate = rate;
+  appState.speedWpm = rateToWpm(rate);
+  // Slider is stored as percent (50–400 → 0.50×–4.00×)
+  if (speedSlider) speedSlider.value = Math.round(rate * 100);
+  if (speedVal) speedVal.textContent = rate.toFixed(2) + '×';
+  saveSettings();
+  // Live rate change while speaking: restart current sentence with new rate
+  if (restart && appState.isPlaying && !appState.isPaused) {
+    const keepIdx = appState.currentSentenceIndex;
+    const keepWord = appState.currentWordIndex;
+    stopSpeech();
+    appState.currentSentenceIndex = keepIdx;
+    appState.currentWordIndex = keepWord >= 0 ? keepWord : -1;
+    speakCurrentSentence();
+  }
+}
+
+function applyFontSize(px) {
+  px = Math.max(12, Math.min(42, Math.round(px)));
+  appState.fontSize = px;
+  readerOutput.style.fontSize = px + 'px';
+  if (fontSizeSlider) fontSizeSlider.value = px;
+  if (fontSizeVal) fontSizeVal.textContent = px + ' pt';
+  saveSettings();
+}
+
+function applyFontFamily(family) {
+  if (!family) return;
+  readerOutput.style.fontFamily = family;
+  // Try to select matching option; otherwise leave custom
+  const opts = [...fontFamilySelect.options];
+  const match = opts.find(o => o.value === family);
+  if (match) fontFamilySelect.value = family;
+  saveSettings();
+}
+
 function loadSettings(){
   try{
     const s = JSON.parse(localStorage.getItem(SET_KEY) || 'null'); if(!s) return;
-    if(typeof s.speed === 'number'){ appState.speedWpm = s.speed; speedSlider.value = s.speed; speedVal.textContent = `${s.speed} wpm`; }
+    // Prefer new rate field; fall back from old WPM if present
+    if (typeof s.rate === 'number') {
+      applySpeechRate(s.rate);
+    } else if (typeof s.speed === 'number') {
+      // Migrate old WPM (was ~80–350, centre 181) → rate
+      applySpeechRate(Math.min(2.5, Math.max(0.5, s.speed / 180)));
+    }
     if(typeof s.dark === 'boolean' && s.dark !== appState.darkMode) applyTheme(s.dark);
-    if(s.ff){ fontFamilySelect.value = s.ff; readerOutput.style.fontFamily = s.ff; }
-    if(s.fs){ fontSizeSelect.value = s.fs; readerOutput.style.fontSize = `${s.fs}px`; }
+    if(s.ff){ applyFontFamily(s.ff); }
+    if(typeof s.fs === 'number' || (typeof s.fs === 'string' && s.fs)) {
+      applyFontSize(parseInt(s.fs, 10) || 19);
+    }
+    if (s.customFont && customFontInput) {
+      customFontInput.value = s.customFont;
+      if (s.customFont.trim()) applyFontFamily(s.customFont.trim());
+    }
     if(s.hl){ appState.highlightMode = s.hl; highlightModeSelect.value = s.hl; }
     if(s.tl){ appState.translateLang = s.tl; translateLangSelect.value = s.tl; }
     if(typeof s.at === 'boolean'){ appState.autoTranslate = s.at; autoTranslateToggle.checked = s.at; }
@@ -483,13 +678,34 @@ function updatePageIndicator() {
 
 /* ---------- Parsing ---------- */
 const SENT_REGEX = /[^.!?]+[.!?]+["\u201d"']?|[^.!?]+$/g;
+
+// Detect likely chapter / section headings (short, numbered, titled, or non-sentence-like)
+function isLikelyHeading(line) {
+  const t = line.trim();
+  if (!t || t.length > 120) return false;
+  // Explicit chapter / part / section patterns
+  if (/^(?:chapter|ch\.?|part|section|book|episode|canto|act|scene)\s*[\divxlcdm0-9]+(?:\s*[:.\-–—]\s*.*)?$/i.test(t)) return true;
+  if (/^(?:第\s*[一二三四五六七八九十百千0-9]+\s*[章节回]|第\s*\d+\s*[章节回])/i.test(t)) return true;
+  // Numbered title: "1. Title", "12 - Title", "III. Title"
+  if (/^[\divxlcdm0-9]{1,5}[\s.)\]\-–—:]+.+/i.test(t) && t.length < 90) return true;
+  // All-caps short line (common for titles)
+  if (t.length <= 60 && t === t.toUpperCase() && /[\p{L}]{3,}/u.test(t) && !/[.!?]/.test(t)) return true;
+  // Markdown-style or short title without sentence-ending punctuation
+  if (t.length <= 70 && !/[.!?]["\u201d"']?\s*$/.test(t) && !/[;:,]\s*$/.test(t) && (t.split(/\s+/).length <= 12)) {
+    // Avoid treating normal short sentences as headings if they look like dialogue or body
+    if (/^[“"'\(]/.test(t)) return false;
+    return true;
+  }
+  return false;
+}
+
 function parseTextIntoStructure(text){
   const clean = text.replace(/\r\n/g,'\n');
   appState.lines = []; appState.sentences = [];
   let sIdx = 0, gWord = 0;
   clean.split('\n').forEach(rawLine => {
     const trimmed = rawLine.trim(); if(!trimmed) return;
-    const lineObj = { text: trimmed, isHeading: !/[.!?]["\u201d"']?$/.test(trimmed), sentenceIndices: [] };
+    const lineObj = { text: trimmed, isHeading: isLikelyHeading(trimmed), sentenceIndices: [] };
     (trimmed.match(SENT_REGEX) || [trimmed]).forEach(m => {
       const words = []; const wr = /(\s*)(\S+)(\s*)/g; let mm, li = 0;
       while((mm = wr.exec(m)) !== null) words.push({ globalIndex: gWord++, localIndex: li++, word: mm[2], leadingSpace: mm[1], trailingSpace: mm[3] });
@@ -505,10 +721,30 @@ function parseTextIntoStructure(text){
 function getSpokenText(t){
   let r = t;
   for(const [k,v] of Object.entries(appState.customPronunciations)) if(k && v) r = r.replace(new RegExp(`\\b${k}\\b`,'gi'), v);
-  return r.replace(/[\~\*\"\<\>\.\(\)\[\]]/g, ' ').replace(/\s+/g, ' ').trim();
+  // Strip most punctuation so TTS skips it, but KEEP apostrophes (straight and curly)
+  // so possessives like "Chu Fang's" stay intact and are not read as "Fang s"
+  return r
+    .replace(/[^\p{L}\p{N}\s'’]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /* ---------- Highlights (Pro Modes) ---------- */
+function scrollToCurrentHighlight() {
+  // Prefer the active word, otherwise the sentence block
+  const wordEl = readerOutput.querySelector('.hl-word');
+  const sentEl = readerOutput.querySelector('.hl-sentence');
+  const el = wordEl || sentEl;
+  if (!el) return;
+  // Keep the spoken word roughly in the middle of the viewport while reading
+  try {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+  } catch (_) {
+    // Older browsers
+    el.scrollIntoView(true);
+  }
+}
+
 function updateHighlights(){
   document.querySelectorAll('.hl-word, .hl-sentence, .hl-paragraph').forEach(el => {
     el.classList.remove('hl-word', 'hl-sentence', 'hl-paragraph');
@@ -524,64 +760,113 @@ function updateHighlights(){
         const wEl = sEl.querySelector(`[data-word-index="${appState.currentWordIndex}"]`);
         if(wEl) wEl.classList.add('hl-word');
       }
+      // Auto-scroll only while actively reading so the highlight stays visible
+      if (appState.isPlaying && !appState.isPaused) {
+        // Defer slightly so layout has updated after class changes
+        requestAnimationFrame(() => scrollToCurrentHighlight());
+      }
     }
   }
 }
 
-/* ---------- Sidebar / TOC ---------- */
-function renderSidebar(){
+/* ---------- Sidebar: Pages and Chapters ---------- */
+let sidebarMode = 'pages';
+
+function setSidebarMode(mode) {
+  sidebarMode = mode;
+  $('sidebar-title').textContent = mode === 'pages' ? 'PAGES' : 'CHAPTERS';
+  $('sidebar-pages-tab').classList.toggle('btn-accent', mode === 'pages');
+  $('sidebar-chapters-tab').classList.toggle('btn-accent', mode === 'chapters');
+  renderSidebar();
+}
+
+function renderSidebar() {
   sidebarList.innerHTML = '';
-  let n = 0;
+  if (sidebarMode === 'pages') {
+    appState.pages.forEach((page, pageIdx) => {
+      const btn = document.createElement('button');
+      btn.className = 'toc-item';
+      btn.textContent = String(pageIdx + 1);
+      btn.title = `Page ${pageIdx + 1}`;
+      btn.dataset.pageIdx = pageIdx;
+      btn.addEventListener('click', () => {
+        goToPage(pageIdx);
+        closeDrawer();
+      });
+      sidebarList.appendChild(btn);
+    });
+    updateTocActive();
+    return;
+  }
+
+  let chapterNumber = 0;
   appState.lines.forEach((line, lineIdx) => {
-    if(!line.isHeading || !line.sentenceIndices.length) return;
-    n++;
+    if (!line.isHeading || !line.sentenceIndices.length) return;
+    chapterNumber++;
     const btn = document.createElement('button');
-    btn.className = 'toc-item'; btn.textContent = `${n}. ${line.text}`; btn.title = line.text;
+    btn.className = 'toc-item';
+    // Clean common prefixes then truncate so the drawer only shows a short title + number
+    let chapterName = line.text
+      .replace(/^\s*(?:chapter|ch\.?|part|section|book|episode)\s*[\divxlcdm0-9]+[\s:.\-–—]*/i, '')
+      .replace(/^[\divxlcdm0-9]{1,5}[\s.)\]\-–—:]+/i, '')
+      .trim() || line.text;
+    // Hard limit so long paragraphs never flood the sidebar
+    if (chapterName.length > 48) chapterName = chapterName.slice(0, 45).trim() + '…';
+    btn.textContent = `${chapterNumber}. ${chapterName}`;
+    btn.title = line.text; // full original on hover
     btn.dataset.lineIdx = lineIdx;
     btn.addEventListener('click', () => { jumpToToc(lineIdx); closeDrawer(); });
     sidebarList.appendChild(btn);
   });
-  if(!sidebarList.children.length){
+
+  if (!sidebarList.children.length) {
     sidebarList.innerHTML = '<p class="px-3 py-2 text-[11px]" style="color:var(--faint);">No chapter headings detected.</p>';
   }
   updateTocActive();
 }
-function updateTocActive(){
+
+function updateTocActive() {
+  if (sidebarMode === 'pages') {
+    sidebarList.querySelectorAll('.toc-item').forEach(el => {
+      el.classList.toggle('toc-active', Number(el.dataset.pageIdx) === appState.currentPageIndex);
+    });
+    return;
+  }
   const curSent = appState.sentences[appState.currentSentenceIndex];
   const curLineIdx = curSent ? curSent.lineIndex : -1;
-  document.querySelectorAll('.toc-item').forEach(el => {
-    const elLineIdx = parseInt(el.dataset.lineIdx);
-    // Find if this heading is the active one (the last heading before or on the current line)
-    el.classList.remove('toc-active');
-  });
   let activeEl = null;
-  document.querySelectorAll('.toc-item').forEach(el => {
-      if(parseInt(el.dataset.lineIdx) <= curLineIdx) activeEl = el;
+  sidebarList.querySelectorAll('.toc-item').forEach(el => {
+    el.classList.remove('toc-active');
+    if (parseInt(el.dataset.lineIdx, 10) <= curLineIdx) activeEl = el;
   });
-  if(activeEl) activeEl.classList.add('toc-active');
+  if (activeEl) activeEl.classList.add('toc-active');
 }
+
 function jumpToToc(lineIdx) {
-    let targetPageIdx = 0;
-    let targetSentIdx = -1;
-    for (let p = 0; p < appState.pages.length; p++) {
-        for (let sIdx of appState.pages[p]) {
-            if (appState.sentences[sIdx].lineIndex === lineIdx) {
-                targetPageIdx = p;
-                targetSentIdx = sIdx;
-                break;
-            }
-        }
-        if (targetSentIdx !== -1) break;
+  let targetPageIdx = 0;
+  let targetSentIdx = -1;
+  for (let p = 0; p < appState.pages.length; p++) {
+    for (const sIdx of appState.pages[p]) {
+      if (appState.sentences[sIdx].lineIndex === lineIdx) {
+        targetPageIdx = p;
+        targetSentIdx = sIdx;
+        break;
+      }
     }
-    goToPage(targetPageIdx).then(() => {
-        if (targetSentIdx !== -1) {
-            appState.currentSentenceIndex = targetSentIdx;
-            appState.currentWordIndex = -1;
-            updateHighlights();
-            savePosition();
-        }
-    });
+    if (targetSentIdx !== -1) break;
+  }
+  goToPage(targetPageIdx).then(() => {
+    if (targetSentIdx !== -1) {
+      appState.currentSentenceIndex = targetSentIdx;
+      appState.currentWordIndex = -1;
+      updateHighlights();
+      updateTocActive();
+      savePosition();
+    }
+  });
 }
+$('sidebar-pages-tab').addEventListener('click', () => setSidebarMode('pages'));
+$('sidebar-chapters-tab').addEventListener('click', () => setSidebarMode('chapters'));
 function openDrawer(){ sidebar.classList.replace('drawer-closed','drawer-open'); $('drawer-backdrop').classList.remove('hidden'); }
 function closeDrawer(){ sidebar.classList.replace('drawer-open','drawer-closed'); $('drawer-backdrop').classList.add('hidden'); }
 $('sidebar-toggle-btn').addEventListener('click', openDrawer);
@@ -607,7 +892,8 @@ function speakCurrentSentence(){
   
   activeUtterance = new SpeechSynthesisUtterance(spokenText);
   if(appState.selectedVoice) activeUtterance.voice = appState.selectedVoice;
-  activeUtterance.rate = Math.min(Math.max(appState.speedWpm / 180, 0.5), 2.5);
+  // SpeechSynthesis rate: most engines accept ~0.5–2.0 well; some support up to ~3–4
+  activeUtterance.rate = Math.min(Math.max(appState.speechRate, 0.5), 4);
   
   activeUtterance.onboundary = e => {
     if(e.charIndex == null) return;
@@ -673,37 +959,263 @@ async function loadNewText(text, label, bookId = null){
 }
 
 openBtn.addEventListener('click', () => fileInput.click());
+
+// Paste text from clipboard
+pasteBtn.addEventListener('click', async () => {
+  try {
+    let text = '';
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      text = await navigator.clipboard.readText();
+    } else {
+      text = prompt('Paste your text here:') || '';
+    }
+    text = (text || '').trim();
+    if (!text) {
+      setStatus('Clipboard is empty');
+      return;
+    }
+    const label = prompt('Name for this document:', 'Pasted text') || 'Pasted text';
+    await loadNewText(text, label);
+    setStatus('Ready · ' + label);
+  } catch (err) {
+    // Fallback when clipboard permission is denied
+    const text = prompt('Paste your text here (clipboard access denied):') || '';
+    if (text.trim()) {
+      const label = prompt('Name for this document:', 'Pasted text') || 'Pasted text';
+      await loadNewText(text.trim(), label);
+    } else {
+      setStatus('Paste cancelled');
+    }
+  }
+});
+
+/* ---------- Reliable PDF / EPUB document import ---------- */
+function normalizedDocumentText(value) {
+  return String(value || '')
+    .replace(/\u0000/g, '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function assessExtractedText(value) {
+  const text = String(value || '').trim();
+  if (!text) return { good: false, score: 0, reason: 'empty' };
+
+  const visible = [...text].filter(ch => !/\s/.test(ch));
+  if (!visible.length) return { good: false, score: 0, reason: 'empty' };
+
+  const replacement = (text.match(/\uFFFD/g) || []).length;
+  const privateUse = (text.match(/[\uE000-\uF8FF]/g) || []).length;
+  const control = (text.match(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g) || []).length;
+  const letters = (text.match(/[\p{L}\p{N}]/gu) || []).length;
+  const odd = (text.match(/[�□■◆◇※¤§]/g) || []).length;
+  const ratio = letters / Math.max(1, visible.length);
+  const badRatio = (replacement + privateUse + control + odd) / Math.max(1, visible.length);
+  const good = text.length >= 30 && ratio > 0.35 && badRatio < 0.04;
+  return { good, score: ratio - badRatio * 3, reason: good ? 'ok' : 'suspect' };
+}
+
+function pdfPageText(items) {
+  let output = '';
+  let lastY = null;
+  for (const item of items) {
+    if (!item.str) continue;
+    const y = item.transform ? item.transform[5] : null;
+    if (lastY !== null && y !== null && Math.abs(y - lastY) > 4) output += '\n';
+    output += item.str + ' ';
+    if (y !== null) lastY = y;
+  }
+  return normalizedDocumentText(output);
+}
+
+let tesseractWorkerPromise = null;
+async function getOcrWorker() {
+  if (!window.Tesseract) {
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Could not load the OCR engine. Check your internet connection.'));
+      document.head.appendChild(script);
+    });
+  }
+  if (!tesseractWorkerPromise) {
+    tesseractWorkerPromise = window.Tesseract.createWorker('eng', 1, {
+      logger: info => {
+        if (info && info.status === 'recognizing text' && typeof info.progress === 'number') {
+          setStatus('OCR ' + Math.round(info.progress * 100) + '%');
+        }
+      }
+    });
+  }
+  return tesseractWorkerPromise;
+}
+
+async function recognizePdfPage(pdfPage) {
+  const worker = await getOcrWorker();
+  const viewport = pdfPage.getViewport({ scale: 1.65 });
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  canvas.width = Math.ceil(viewport.width);
+  canvas.height = Math.ceil(viewport.height);
+  await pdfPage.render({ canvasContext: context, viewport }).promise;
+  const result = await worker.recognize(canvas);
+  canvas.width = 0;
+  canvas.height = 0;
+  return normalizedDocumentText(result.data.text || '');
+}
+
+async function extractPdf(file) {
+  if (!window.pdfjsLib) throw new Error('PDF.js did not load. Please check your internet connection and try again.');
+  const pdfDoc = await pdfjsLib.getDocument({
+    data: new Uint8Array(await file.arrayBuffer()),
+    useSystemFonts: true,
+    isEvalSupported: false
+  }).promise;
+
+  const pageTexts = [];
+  let needsOcr = false;
+
+  for (let pageNo = 1; pageNo <= pdfDoc.numPages; pageNo++) {
+    setStatus(`Reading PDF page ${pageNo} of ${pdfDoc.numPages}...`);
+    const page = await pdfDoc.getPage(pageNo);
+    const content = await page.getTextContent({ includeMarkedContent: false });
+    let text = pdfPageText(content.items);
+    const quality = assessExtractedText(text);
+
+    // OCR only pages that appear scanned, empty, or badly decoded.
+    if (!quality.good) {
+      needsOcr = true;
+      try {
+        setStatus(`Recognizing text on PDF page ${pageNo}...`);
+        const ocrText = await recognizePdfPage(page);
+        if (assessExtractedText(ocrText).score > quality.score || !text) {
+          text = ocrText;
+        }
+      } catch (ocrError) {
+        console.warn('OCR fallback failed on page ' + pageNo, ocrError);
+        if (!text) text = `[Page ${pageNo}: no selectable text was found. OCR could not run.]`;
+      }
+    }
+    pageTexts.push(text ? `Page ${pageNo}\n${text}` : `[Page ${pageNo}: no readable text found]`);
+  }
+
+  const fullText = normalizedDocumentText(pageTexts.join('\n\n'));
+  if (!fullText || !assessExtractedText(fullText).good) {
+    throw new Error('This PDF did not produce readable text. It may be password-protected, damaged, or use an unsupported font encoding.');
+  }
+  return { text: fullText, pages: pdfDoc.numPages, usedOcr: needsOcr };
+}
+
+function xmlElementsByLocalName(xmlDoc, localName) {
+  return [...xmlDoc.getElementsByTagName('*')].filter(el => el.localName === localName);
+}
+
+function safeZipPath(basePath, relativePath) {
+  const combined = (basePath ? basePath.replace(/\/[^/]*$/, '/') : '') + relativePath;
+  const parts = [];
+  for (const part of combined.split('/')) {
+    if (!part || part === '.') continue;
+    if (part === '..') parts.pop();
+    else parts.push(part);
+  }
+  return parts.join('/');
+}
+
+async function extractEpub(file) {
+  if (!window.JSZip) throw new Error('The EPUB reader library did not load. Please check your internet connection.');
+  const zip = await JSZip.loadAsync(await file.arrayBuffer());
+  const containerEntry = zip.file('META-INF/container.xml');
+  if (!containerEntry) throw new Error('This EPUB is missing its package index and may be damaged.');
+
+  const containerXml = new DOMParser().parseFromString(await containerEntry.async('text'), 'application/xml');
+  const rootfile = xmlElementsByLocalName(containerXml, 'rootfile')[0];
+  const opfPath = rootfile && (rootfile.getAttribute('full-path') || rootfile.getAttribute('fullPath'));
+  if (!opfPath || !zip.file(opfPath)) throw new Error('Could not locate the EPUB book contents.');
+
+  const opfXml = new DOMParser().parseFromString(await zip.file(opfPath).async('text'), 'application/xml');
+  if (opfXml.querySelector('parsererror')) throw new Error('The EPUB package index is malformed.');
+
+  const manifest = new Map();
+  for (const item of xmlElementsByLocalName(opfXml, 'item')) {
+    const id = item.getAttribute('id');
+    const href = item.getAttribute('href');
+    const media = (item.getAttribute('media-type') || '').toLowerCase();
+    if (id && href && (media.includes('html') || /\.(xhtml|html|htm)$/i.test(href))) {
+      manifest.set(id, safeZipPath(opfPath, decodeURIComponent(href.split('#')[0])));
+    }
+  }
+
+  const chapters = [];
+  const spine = xmlElementsByLocalName(opfXml, 'itemref');
+  for (let i = 0; i < spine.length; i++) {
+    const idref = spine[i].getAttribute('idref');
+    const path = manifest.get(idref);
+    if (!path || !zip.file(path)) continue;
+
+    const chapterDoc = new DOMParser().parseFromString(await zip.file(path).async('text'), 'text/html');
+    chapterDoc.querySelectorAll('script,style,nav,svg, noscript').forEach(el => el.remove());
+    const body = chapterDoc.body || chapterDoc.documentElement;
+    const heading = body.querySelector('h1,h2,h3,[ epub\\:type="title" ]');
+    const title = (heading && heading.textContent.trim()) || `Chapter ${chapters.length + 1}`;
+    const text = normalizedDocumentText(body.innerText || body.textContent || '');
+    if (text) chapters.push(`${title}\n${text}`);
+  }
+
+  if (!chapters.length) throw new Error('No readable chapters were found in this EPUB. The file may be DRM-protected or damaged.');
+  const fullText = normalizedDocumentText(chapters.join('\n\n'));
+  if (!assessExtractedText(fullText).good) {
+    throw new Error('The EPUB content did not decode into readable text. It may be encrypted or use an unsupported format.');
+  }
+  return { text: fullText, chapters: chapters.length };
+}
+
 fileInput.addEventListener('change', async e => {
-  const file = e.target.files[0]; if(!file) return;
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
   const ext = file.name.split('.').pop().toLowerCase();
   docStatusSubtitle.textContent = file.name;
-  setStatus('Parsing...');
-  
-  if(ext === 'pdf'){
-    try{
-      const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
-      const pages = [];
-      for(let i = 1; i <= pdfDoc.numPages; i++){
-        pages.push(pdfDoc.getPage(i).then(pg => pg.getTextContent().then(tc => {
-          let lastY, t = '';
-          tc.items.forEach(it => { if(lastY !== undefined && Math.abs(it.transform[5]-lastY) > 5) t += '\n'; t += it.str + ' '; lastY = it.transform[5]; });
-          return t;
-        })));
+  setStatus('Opening document...');
+  stopSpeech();
+
+  try {
+    if (ext === 'pdf') {
+      const result = await extractPdf(file);
+      await loadNewText(result.text, file.name);
+      setStatus(result.usedOcr ? `Ready · ${result.pages} pages · OCR used where needed` : `Ready · ${result.pages} pages`);
+    } else if (ext === 'epub') {
+      const result = await extractEpub(file);
+      await loadNewText(result.text, file.name);
+      setStatus(`Ready · ${result.chapters} chapters`);
+    } else {
+      const raw = await file.text();
+      let text = raw;
+      if (ext === 'html' || ext === 'htm') {
+        const parsed = new DOMParser().parseFromString(raw, 'text/html');
+        parsed.querySelectorAll('script,style,noscript,svg').forEach(el => el.remove());
+        text = parsed.body.innerText || parsed.body.textContent || '';
+      } else if (ext === 'rtf') {
+        text = raw
+          .replace(/\\'[0-9a-f]{2}/gi, '')
+          .replace(/\\par[d]?/gi, '\n')
+          .replace(/\\'[0-9a-f]{2}|\\[a-z]+-?\d* ?|[{}]/gi, ' ')
+          .replace(/\s+/g, ' ');
       }
-      const full = (await Promise.all(pages)).join('\n\n').trim();
-      loadNewText(full, file.name);
-    } catch(err){ alert('Could not open PDF'); setStatus('Ready'); }
-  } else {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      let t = ev.target.result;
-      if(ext === 'html' || ext === 'htm') {
-        const doc = new DOMParser().parseFromString(t, 'text/html');
-        t = doc.body.textContent || '';
+      text = normalizedDocumentText(text);
+      if (!text || !assessExtractedText(text).good) {
+        throw new Error('This file did not contain readable text. If it is a scanned PDF, please open it as a PDF so OCR can be attempted.');
       }
-      loadNewText(t, file.name);
-    };
-    reader.readAsText(file, 'UTF-8');
+      await loadNewText(text, file.name);
+      setStatus('Ready');
+    }
+  } catch (err) {
+    console.error('Document import failed:', err);
+    setStatus('Could not read document');
+    alert(`Could not read "${file.name}".\n\n${err.message || 'The file may be damaged or unsupported.'}`);
+  } finally {
+    fileInput.value = '';
   }
 });
 
@@ -722,9 +1234,38 @@ autoTranslateToggle.addEventListener('change', async e => {
         setStatus('Ready');
     }
 });
-speedSlider.addEventListener('input', e => { appState.speedWpm = parseInt(e.target.value, 10); speedVal.textContent = `${appState.speedWpm} wpm`; saveSettings(); });
-fontFamilySelect.addEventListener('change', e => { readerOutput.style.fontFamily = e.target.value; saveSettings(); });
-fontSizeSelect.addEventListener('change', e => { readerOutput.style.fontSize = `${e.target.value}px`; saveSettings(); });
+// Speed: slider stores rate × 100 (50–400 → 0.50×–4.00×). Live change restarts current sentence.
+speedSlider.addEventListener('input', e => {
+  const rate = parseInt(e.target.value, 10) / 100;
+  applySpeechRate(rate, { restart: true });
+});
+document.querySelectorAll('.speed-preset').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const rate = parseFloat(btn.dataset.rate);
+    if (!isNaN(rate)) applySpeechRate(rate, { restart: true });
+  });
+});
+
+fontFamilySelect.addEventListener('change', e => {
+  if (customFontInput) customFontInput.value = '';
+  applyFontFamily(e.target.value);
+});
+if (fontSizeSlider) {
+  fontSizeSlider.addEventListener('input', e => applyFontSize(parseInt(e.target.value, 10)));
+}
+if (customFontInput) {
+  customFontInput.addEventListener('change', () => {
+    const name = customFontInput.value.trim();
+    if (name) applyFontFamily(name);
+  });
+  customFontInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const name = customFontInput.value.trim();
+      if (name) applyFontFamily(name);
+    }
+  });
+}
 
 const SUN = '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
 const MOON = '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
@@ -787,35 +1328,414 @@ function renderBookmarks() {
 $('view-bookmarks-btn').addEventListener('click', () => { renderBookmarks(); $('bookmarks-modal').classList.remove('hidden'); });
 $('close-bookmarks-btn').addEventListener('click', () => $('bookmarks-modal').classList.add('hidden'));
 
-/* ---------- Voice Manager (Piper Alternative) ---------- */
-function checkVoiceManager() {
-    const list = $('voice-status-list');
-    list.innerHTML = '';
-    const voices = synth.getVoices();
-    const targetLang = appState.translateLang || 'en';
-    const baseLang = targetLang.split('-')[0];
-    
-    const hasVoice = voices.some(v => v.lang.toLowerCase().startsWith(baseLang.toLowerCase()));
-    
-    if(hasVoice) {
-        list.innerHTML = `<div class="p-3 rounded-lg bg-green-900/30 border border-green-700 text-green-300 text-xs">✅ High-quality neural voices for <b>${targetLang.toUpperCase()}</b> are installed and ready.</div>`;
-    } else {
-        list.innerHTML = `<div class="p-3 rounded-lg bg-red-900/30 border border-red-700 text-red-300 text-xs">⚠️ No native voices found for <b>${targetLang.toUpperCase()}</b>. Click below to open Android TTS settings and download the language pack (works just like Piper!).</div>`;
-    }
-    $('voice-manager-modal').classList.remove('hidden');
+/* ---------- Piper voice catalogue and one-time browser cache ---------- */
+const PIPER_CATALOG_URL = 'https://huggingface.co/rhasspy/piper-voices/resolve/main/voices.json';
+const PIPER_BASE_URL = 'https://huggingface.co/rhasspy/piper-voices/resolve/main/';
+const PIPER_FAVOURITE_IDS = [
+  'ur_PK-aegis_female-medium',
+  'ur_PK-fasih-medium',
+  'en_US-lessac-medium'
+];
+let piperCatalog = [];
+let piperCatalogLoaded = false;
+let piperDownloadController = null;
+let piperCachedIds = new Set();
+
+function piperDbRequest(mode, action, value) {
+  return dbPromise.then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction('piperVoices', mode);
+    const store = tx.objectStore('piperVoices');
+    const req = store[action](...(value === undefined ? [] : [value]));
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+    tx.onerror = () => reject(tx.error);
+  }));
 }
+
+function piperVoiceLabel(v) {
+  const lang = v.language || {};
+  const language = [lang.name_english, lang.name_native, lang.code].filter(Boolean).join(' / ') || 'Unknown language';
+  return `${language} · ${v.quality || 'standard'}`;
+}
+
+function piperProgress(show, label = 'Preparing download…', percent = 0, loaded = 0, total = 0) {
+  const wrap = $('piper-progress-wrap');
+  wrap.classList.toggle('hidden', !show);
+  $('piper-progress-label').textContent = label;
+  $('piper-progress-percent').textContent = total > 0 ? `${Math.min(100, Math.round(percent))}%` : '…';
+  $('piper-progress-bar').style.width = total > 0 ? `${Math.min(100, Math.max(0, percent))}%` : '35%';
+  $('piper-progress-size').textContent = total > 0
+    ? `${(loaded / 1048576).toFixed(1)} / ${(total / 1048576).toFixed(1)} MB`
+    : `${(loaded / 1048576).toFixed(1)} MB downloaded`;
+}
+
+function renderPiperCatalog() {
+  const list = $('piper-voice-list');
+  const query = ($('piper-search').value || '').trim().toLowerCase();
+  list.innerHTML = '';
+
+  // Sort: favourites first, then medium quality, then by language / id
+  const matches = piperCatalog
+    .filter(v => !query || piperVoiceLabel(v).toLowerCase().includes(query) || v.id.toLowerCase().includes(query))
+    .sort((a, b) => {
+      const af = PIPER_FAVOURITE_IDS.includes(a.id) ? 0 : 1;
+      const bf = PIPER_FAVOURITE_IDS.includes(b.id) ? 0 : 1;
+      if (af !== bf) return af - bf;
+      const aq = (a.quality === 'medium') ? 0 : 1;
+      const bq = (b.quality === 'medium') ? 0 : 1;
+      if (aq !== bq) return aq - bq;
+      return a.id.localeCompare(b.id);
+    });
+
+  if (!matches.length) {
+    list.innerHTML = '<p class="text-xs py-3 text-center" style="color:var(--muted);">No voices matched your search. Clear the search box or refresh the catalogue.</p>';
+    return;
+  }
+
+  // Limit initial render for performance; search still works on full list
+  const toShow = query ? matches : matches.slice(0, 80);
+  toShow.forEach(voice => {
+    const isCached = piperCachedIds.has(voice.id);
+    const isFav = PIPER_FAVOURITE_IDS.includes(voice.id);
+    const row = document.createElement('div');
+    row.className = 'rounded-lg border p-2.5 flex items-center gap-2';
+    row.style.borderColor = isFav ? 'var(--gold)' : 'var(--control-bd)';
+    const info = document.createElement('div');
+    info.className = 'min-w-0 flex-1';
+    const name = document.createElement('div');
+    name.className = 'text-xs font-semibold break-words';
+    name.style.color = 'var(--fg)';
+    name.textContent = (isFav ? '★ ' : '') + voice.id;
+    const detail = document.createElement('div');
+    detail.className = 'text-[10px] mt-1';
+    detail.style.color = 'var(--muted)';
+    detail.textContent = piperVoiceLabel(voice) + (isCached ? ' · Cached' : '');
+    info.append(name, detail);
+    const button = document.createElement('button');
+    button.className = 'control-btn rounded-lg px-3 py-2 text-[11px] shrink-0';
+    if (isCached) {
+      button.textContent = 'Cached';
+      button.disabled = true;
+    } else {
+      button.textContent = 'Download';
+      button.addEventListener('click', () => downloadPiperVoice(voice, button));
+    }
+    row.append(info, button);
+    list.appendChild(row);
+  });
+  if (!query && matches.length > 80) {
+    const more = document.createElement('p');
+    more.className = 'text-[10px] text-center py-2';
+    more.style.color = 'var(--muted)';
+    more.textContent = `Showing 80 of ${matches.length} voices. Type in the search box to find others (e.g. "arabic", "hindi", "medium").`;
+    list.appendChild(more);
+  }
+}
+
+async function loadPiperCatalog() {
+  const status = $('piper-download-status');
+  const button = $('load-piper-catalog');
+  button.disabled = true;
+  button.textContent = 'Loading…';
+  status.textContent = 'Fetching the official Piper voice catalogue…';
+  try {
+    const response = await fetch(PIPER_CATALOG_URL, { cache: 'no-cache' });
+    if (!response.ok) throw new Error(`Catalogue request failed (${response.status}).`);
+    const catalog = await response.json();
+    piperCatalog = Object.entries(catalog).filter(([id, details]) => {
+      const files = Object.keys(details.files || {});
+      return files.some(p => p.endsWith('.onnx')) && files.some(p => p.endsWith('.onnx.json'));
+    }).map(([id, details]) => ({
+      id,
+      language: details.language || {},
+      quality: details.quality || '',
+      files: Object.keys(details.files || {}).filter(p => p.endsWith('.onnx') || p.endsWith('.onnx.json'))
+    })).filter(v => v.files.length >= 2);
+    piperCatalogLoaded = true;
+    // Refresh cached set so UI can mark already-downloaded voices
+    try {
+      const cached = await piperDbRequest('readonly', 'getAll');
+      piperCachedIds = new Set((cached || []).map(v => v.id));
+    } catch (_) { piperCachedIds = new Set(); }
+    const favCount = piperCatalog.filter(v => PIPER_FAVOURITE_IDS.includes(v.id)).length;
+    status.textContent = `${piperCatalog.length} Piper voices available (${favCount} favourites). Search by language or quality, then download.`;
+    renderPiperCatalog();
+  } catch (err) {
+    status.textContent = `Could not load the Piper catalogue. Check your internet connection and try again. ${err.message}`;
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Refresh list';
+  }
+}
+
+async function fetchPiperFileWithProgress(relativePath, phase, signal) {
+  const url = PIPER_BASE_URL + relativePath.split('/').map(encodeURIComponent).join('/');
+  const response = await fetch(url, { signal, cache: 'no-cache' });
+  if (!response.ok) throw new Error(`Download failed (${response.status}) for ${relativePath.split('/').pop()}.`);
+  const headerSize = Number(response.headers.get('content-length') || 0);
+  const chunks = [];
+  let loaded = 0;
+
+  if (response.body && response.body.getReader) {
+    const reader = response.body.getReader();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      loaded += value.byteLength;
+      const percent = headerSize ? loaded / headerSize * 100 : 0;
+      piperProgress(true, phase, percent, loaded, headerSize);
+    }
+  } else {
+    const blob = await response.blob();
+    loaded = blob.size;
+    chunks.push(blob);
+    piperProgress(true, phase, 100, loaded, loaded);
+  }
+  return new Blob(chunks, { type: 'application/octet-stream' });
+}
+
+async function downloadPiperVoice(voice, button) {
+  const status = $('piper-download-status');
+  if (piperDownloadController) piperDownloadController.abort();
+  piperDownloadController = new AbortController();
+  const signal = piperDownloadController.signal;
+  button.disabled = true;
+  button.textContent = 'Downloading…';
+  $('piper-cancel-download').disabled = false;
+  status.textContent = `Preparing ${voice.id}…`;
+  piperProgress(true, 'Starting model download…', 0, 0, 0);
+
+  try {
+    const existing = await piperDbRequest('readonly', 'get', voice.id);
+    if (existing && existing.model && existing.config) {
+      status.textContent = `${voice.id} is already cached on this device.`;
+      button.textContent = 'Cached';
+      await renderCachedPiperVoices();
+      return;
+    }
+    const modelRel = voice.files.find(p => p.endsWith('.onnx'));
+    const configRel = voice.files.find(p => p.endsWith('.onnx.json'));
+    if (!modelRel || !configRel) throw new Error('This voice does not include both a model and configuration.');
+
+    status.textContent = `Downloading ${voice.id} model. Keep this page open until it is saved.`;
+    const model = await fetchPiperFileWithProgress(modelRel, 'Downloading voice model…', signal);
+    if (!model.size) throw new Error('The downloaded model is empty. Please retry.');
+
+    status.textContent = `Model downloaded (${(model.size / 1048576).toFixed(1)} MB). Downloading voice configuration…`;
+    const config = await fetchPiperFileWithProgress(configRel, 'Downloading voice configuration…', signal);
+    if (!config.size) throw new Error('The downloaded configuration is empty. Please retry.');
+
+    piperProgress(true, 'Saving voice to browser storage…', 100, model.size + config.size, model.size + config.size);
+    await piperDbRequest('readwrite', 'put', {
+      id: voice.id,
+      language: voice.language || {},
+      quality: voice.quality || '',
+      modelName: modelRel.split('/').pop(),
+      configName: configRel.split('/').pop(),
+      model,
+      config,
+      downloadedAt: Date.now(),
+      modelBytes: model.size,
+      configBytes: config.size
+    });
+    piperCachedIds.add(voice.id);
+    status.textContent = `${voice.id} downloaded and saved in this browser's local cache.`;
+    button.textContent = 'Cached';
+    button.disabled = true;
+    await renderCachedPiperVoices();
+    renderPiperCatalog(); // refresh list so "Cached" state appears immediately
+    piperProgress(false);
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      status.textContent = `Download cancelled for ${voice.id}. No incomplete voice was saved.`;
+      button.textContent = 'Retry';
+    } else {
+      status.textContent = `Could not download ${voice.id}: ${err.message || 'Unknown error'}. Check connection/storage and retry.`;
+      button.textContent = 'Retry';
+    }
+    piperProgress(false);
+  } finally {
+    if (button.textContent !== 'Cached') button.disabled = false;
+    $('piper-cancel-download').disabled = true;
+    piperDownloadController = null;
+  }
+}
+
+$('piper-cancel-download').addEventListener('click', () => {
+  if (piperDownloadController) piperDownloadController.abort();
+});
+
+async function renderCachedPiperVoices() {
+  const box = $('piper-cached-list');
+  box.innerHTML = '';
+  try {
+    const voices = await piperDbRequest('readonly', 'getAll');
+    piperCachedIds = new Set((voices || []).map(v => v.id));
+    if (!voices || !voices.length) {
+      box.textContent = 'No Piper voices downloaded yet.';
+      box.style.color = 'var(--muted)';
+      return;
+    }
+    voices.sort((a, b) => a.id.localeCompare(b.id)).forEach(voice => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-2 justify-between rounded-lg p-2';
+      row.style.background = 'var(--control)';
+      const label = document.createElement('span');
+      label.className = 'min-w-0 break-all';
+      label.textContent = `${voice.id} · ${((voice.modelBytes + voice.configBytes) / 1048576).toFixed(1)} MB`;
+      const remove = document.createElement('button');
+      remove.className = 'text-red-400 px-2 py-1 shrink-0';
+      remove.textContent = 'Remove';
+      remove.addEventListener('click', async () => {
+        await piperDbRequest('readwrite', 'delete', voice.id);
+        piperCachedIds.delete(voice.id);
+        renderCachedPiperVoices();
+        if (piperCatalogLoaded) renderPiperCatalog();
+      });
+      row.append(label, remove);
+      box.appendChild(row);
+    });
+  } catch (err) {
+    box.textContent = `Could not read cached voices: ${err.message}`;
+  }
+}
+
+function refreshSystemVoiceStatus() {
+  const summary = $('voice-status-summary');
+  const list = $('voice-status-list');
+  if (!summary || !list) return;
+
+  const voices = (synth && synth.getVoices) ? synth.getVoices() : [];
+  list.innerHTML = '';
+
+  if (!voices.length) {
+    summary.innerHTML = '<span style="color:#f87171;">No system voices detected.</span> Install a language pack or TTS engine, then tap Refresh.';
+    return;
+  }
+
+  // Group by language code prefix
+  const byLang = {};
+  voices.forEach(v => {
+    const code = (v.lang || 'unknown').toLowerCase();
+    const key = code.split('-')[0];
+    if (!byLang[key]) byLang[key] = [];
+    byLang[key].push(v);
+  });
+
+  const urdu = byLang['ur'] || [];
+  const en = byLang['en'] || [];
+  const ar = byLang['ar'] || [];
+  const hi = byLang['hi'] || [];
+  const zh = byLang['zh'] || [];
+  const ja = byLang['ja'] || [];
+
+  let html = `<b>${voices.length}</b> system voice(s) available. `;
+  if (urdu.length) {
+    html += `<span style="color:#4ade80;">Urdu: ${urdu.length} voice(s) found ✓</span> — select one in Settings → Voice.`;
+  } else {
+    html += `<span style="color:#fbbf24;">No Urdu voice found.</span> Follow the install steps below, then refresh.`;
+  }
+  summary.innerHTML = html;
+
+  // Show a short list of useful voices
+  const interesting = [...urdu, ...en.slice(0, 4), ...ar.slice(0, 2), ...hi.slice(0, 2), ...zh.slice(0, 2), ...ja.slice(0, 2)];
+  const seen = new Set();
+  interesting.forEach(v => {
+    const id = v.name + '|' + v.lang;
+    if (seen.has(id)) return;
+    seen.add(id);
+    const row = document.createElement('div');
+    const isUr = (v.lang || '').toLowerCase().startsWith('ur');
+    row.textContent = `${isUr ? '★ ' : ''}${v.name}  ·  ${v.lang}${v.localService ? '  (local)' : ''}`;
+    if (isUr) row.style.color = 'var(--gold)';
+    list.appendChild(row);
+  });
+  if (voices.length > interesting.length) {
+    const more = document.createElement('div');
+    more.textContent = `… and ${voices.length - interesting.length} more (see Settings → Voice)`;
+    list.appendChild(more);
+  }
+}
+
+function checkVoiceManager() {
+  // Force a voices refresh (some browsers only populate after onvoiceschanged)
+  if (synth) {
+    populateVoices();
+    // Chrome sometimes needs a tick
+    setTimeout(() => {
+      populateVoices();
+      refreshSystemVoiceStatus();
+    }, 200);
+  }
+  refreshSystemVoiceStatus();
+  $('voice-manager-modal').classList.remove('hidden');
+  renderCachedPiperVoices();
+  if (!piperCatalogLoaded) loadPiperCatalog();
+}
+
 $('voice-manager-btn').addEventListener('click', checkVoiceManager);
 $('close-voice-manager-btn').addEventListener('click', () => $('voice-manager-modal').classList.add('hidden'));
+$('load-piper-catalog').addEventListener('click', loadPiperCatalog);
+$('piper-search').addEventListener('input', () => { if (piperCatalogLoaded) renderPiperCatalog(); });
+
+if ($('refresh-voices-btn')) {
+  $('refresh-voices-btn').addEventListener('click', () => {
+    if (synth && synth.getVoices) {
+      // Trigger voiceschanged on some browsers
+      const dummy = new SpeechSynthesisUtterance('');
+      dummy.volume = 0;
+      try { synth.speak(dummy); synth.cancel(); } catch (_) {}
+    }
+    populateVoices();
+    setTimeout(refreshSystemVoiceStatus, 300);
+    setStatus('Voice list refreshed');
+  });
+}
+
 $('install-tts-btn').addEventListener('click', () => {
-    // Deep link to Android TTS settings
+  // Try Android TTS settings intent first; otherwise show platform-agnostic help
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  if (isAndroid) {
     window.location.href = 'intent:#Intent;action=com.android.settings.TTS_SETTINGS;end';
-    // Fallback if deep link fails
     setTimeout(() => {
-        alert("If settings didn't open automatically:\n1. Go to Phone Settings\n2. Search 'Text-to-speech'\n3. Tap the gear ⚙️ next to Google TTS\n4. Install voice data for your language.");
-    }, 1000);
+      alert('If settings did not open, go to:\nSettings → System → Languages & input → Text-to-speech output');
+    }, 1200);
+  } else {
+    alert(
+      'Open your system speech settings:\n\n' +
+      'Windows: Settings → Time & language → Language & region\n' +
+      '  (Add language → Urdu → enable Text-to-speech)\n\n' +
+      'Also try: Settings → Time & language → Speech → Manage voices\n\n' +
+      'After installing, return here and tap “Refresh voice list”.'
+    );
+  }
 });
 
 /* ---------- Web Fetch & Pronunciations (Preserved) ---------- */
+function extractWebTitle(text, url) {
+  // Prefer explicit Title: line returned by jina.ai / reader proxies
+  const titleLine = text.match(/^\s*Title:\s*(.+)$/im);
+  if (titleLine && titleLine[1].trim()) {
+    return titleLine[1].trim().replace(/\s+/g, ' ').slice(0, 90);
+  }
+  // First markdown heading (often the chapter / article title)
+  const heading = text.match(/^#{1,3}\s+(.+)$/m);
+  if (heading && heading[1].trim()) {
+    return heading[1].trim().replace(/\s+/g, ' ').slice(0, 90);
+  }
+  // Fallback: hostname + last meaningful path segment (helps surface chapter numbers)
+  try {
+    const u = new URL(url.startsWith('http') ? url : 'https://' + url);
+    const segments = u.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+    const last = segments.length ? decodeURIComponent(segments[segments.length - 1]).replace(/[-_]+/g, ' ') : '';
+    if (last && last.length > 1) return `${u.hostname} · ${last}`.slice(0, 90);
+    return u.hostname;
+  } catch (_) {
+    return (url || 'Web page').slice(0, 60);
+  }
+}
+
 $('link-btn').addEventListener('click', () => { linkStatus.textContent = ''; linkModal.classList.remove('hidden'); });
 $('close-link-btn').addEventListener('click', () => linkModal.classList.add('hidden'));
 $('load-url-btn').addEventListener('click', async () => {
@@ -823,10 +1743,15 @@ $('load-url-btn').addEventListener('click', async () => {
   linkStatus.textContent = 'Fetching...';
   try {
     const res = await fetch('https://r.jina.ai/' + url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-    loadNewText(text, new URL(url).hostname);
+    const title = extractWebTitle(text, url);
+    await loadNewText(text, title);
     linkModal.classList.add('hidden');
-  } catch(e) { linkStatus.textContent = 'Failed to fetch.'; }
+    setStatus('Ready · ' + title);
+  } catch(e) {
+    linkStatus.textContent = 'Failed to fetch: ' + (e.message || 'network error');
+  }
 });
 
 const pronModal = $('pronunciations-modal');
@@ -841,19 +1766,63 @@ $('save-pronunciations-btn').addEventListener('click', () => { const rules = {};
 function populateVoices(){
   if(!synth) return;
   appState.voices = synth.getVoices();
+  const previousName = appState.selectedVoice ? appState.selectedVoice.name : null;
   voiceSelect.innerHTML = '';
-  appState.voices.forEach((v,i) => { const o = document.createElement('option'); o.value = i; o.textContent = `${v.name} (${v.lang})`; voiceSelect.appendChild(o); });
-  if(!appState.selectedVoice && appState.voices.length) { appState.selectedVoice = appState.voices[0]; voiceSelect.value = 0; }
+  if (!appState.voices.length) {
+    const o = document.createElement('option');
+    o.value = '';
+    o.textContent = 'No system voices found';
+    voiceSelect.appendChild(o);
+    return;
+  }
+  // Sort: local / preferred languages first, then name
+  const sorted = [...appState.voices].sort((a, b) => {
+    const al = (a.lang || '').toLowerCase();
+    const bl = (b.lang || '').toLowerCase();
+    if (al.startsWith('en') !== bl.startsWith('en')) return al.startsWith('en') ? -1 : 1;
+    if (al.startsWith('ur') !== bl.startsWith('ur')) return al.startsWith('ur') ? -1 : 1;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+  appState.voices = sorted;
+  sorted.forEach((v, i) => {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = `${v.name} (${v.lang})${v.localService ? ' · local' : ''}`;
+    voiceSelect.appendChild(o);
+  });
+  let idx = 0;
+  if (previousName) {
+    const found = sorted.findIndex(v => v.name === previousName);
+    if (found >= 0) idx = found;
+  }
+  appState.selectedVoice = sorted[idx];
+  voiceSelect.value = idx;
 }
 if(synth && synth.onvoiceschanged !== undefined) synth.onvoiceschanged = populateVoices;
-voiceSelect.addEventListener('change', e => { appState.selectedVoice = appState.voices[e.target.value]; saveSettings(); });
+voiceSelect.addEventListener('change', e => {
+  const i = parseInt(e.target.value, 10);
+  if (!isNaN(i) && appState.voices[i]) {
+    appState.selectedVoice = appState.voices[i];
+    saveSettings();
+    // If already speaking, restart with the new voice
+    if (appState.isPlaying && !appState.isPaused) {
+      const keepIdx = appState.currentSentenceIndex;
+      stopSpeech();
+      appState.currentSentenceIndex = keepIdx;
+      speakCurrentSentence();
+    }
+  }
+});
 
 loadSettings();
+// Ensure UI shows defaults even if nothing was stored
+if (!speedSlider.value || speedSlider.value === '100') applySpeechRate(appState.speechRate || 1);
+if (fontSizeSlider && !fontSizeSlider.value) applyFontSize(appState.fontSize || 19);
 applyTheme(appState.darkMode);
 populateVoices();
 window.onload = () => {
   parseTextIntoStructure("Welcome to Pro Reader.\n\nOpen a file from your device to start reading. Your books are saved automatically to your local library.\n\nUse the settings to change highlighting modes and enable auto-translation.");
-  renderSidebar();
+  setSidebarMode('pages');
   goToPage(0);
 };
 </script>
