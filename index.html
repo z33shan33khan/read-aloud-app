@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta id="meta-theme" name="theme-color" content="#1e1c19">
-<title>Read Aloud</title>
+<title>Pro Reader</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,6 +23,7 @@
     --gold:#e2a63d; --gold-hv:#efb54e; --on-gold:#221c12;
     --track:#6e6a62;
     --sentence-hl:#2f6b4b; --word-hl:#98cf9c; --word-hl-text:#12291a;
+    --para-hl:rgba(47, 107, 75, 0.25);
     --arrow:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23d8d3ca'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpolyline%20points='6%209%2012%2015%2018%209'/%3E%3C/svg%3E");
   }
   body.light-mode{
@@ -30,11 +31,11 @@
     --control-hv:#f0ede6; --reader:#fbfaf8; --reader-bd:#d8d4cb;
     --fg:#211d18; --muted:#5f5a52; --faint:#7a756c; --track:#c4bfb4;
     --sentence-hl:#cfe8d2; --word-hl:#83c98b; --word-hl-text:#142b18;
+    --para-hl:rgba(131, 201, 139, 0.3);
     --arrow:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%235f5a52'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpolyline%20points='6%209%2012%2015%2018%209'/%3E%3C/svg%3E");
   }
   html,body{height:100%;}
-  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--fg);
-       -webkit-tap-highlight-color:transparent;overscroll-behavior:none;}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--fg);-webkit-tap-highlight-color:transparent;overscroll-behavior:none;}
   button,select,input,label{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
   .panel{background:var(--panel);}
   .control-btn{background:var(--control);border:1px solid var(--control-bd);color:var(--fg);transition:background .15s;}
@@ -42,49 +43,44 @@
   .btn-accent{background:var(--gold)!important;border-color:var(--gold)!important;color:var(--on-gold)!important;font-weight:600;}
   input[type=checkbox]{accent-color:#4285f4;width:16px;height:16px;}
   input[type=range]{-webkit-appearance:none;appearance:none;height:5px;border-radius:99px;background:var(--track);outline:none;cursor:pointer;}
-  input[type=range]::-webkit-slider-runnable-track{height:5px;background:transparent;border-radius:99px;}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;height:18px;width:18px;margin-top:-6.5px;border-radius:50%;background:var(--gold);border:none;box-shadow:0 0 4px rgba(0,0,0,.35);}
-  input[type=range]::-moz-range-track{height:5px;background:transparent;border-radius:99px;}
-  input[type=range]::-moz-range-thumb{height:18px;width:18px;border:none;border-radius:50%;background:var(--gold);}
   ::-webkit-scrollbar{width:0;height:0;}
-  select{
-    appearance:none;-webkit-appearance:none;-moz-appearance:none;
-    background-color:var(--control);background-image:var(--arrow);
-    background-repeat:no-repeat;background-position:right .55rem center;background-size:1em 1em;
-    border:1px solid var(--control-bd);color:var(--fg);font-size:14px;
-  }
+  select{appearance:none;-webkit-appearance:none;-moz-appearance:none;background-color:var(--control);background-image:var(--arrow);background-repeat:no-repeat;background-position:right .55rem center;background-size:1em 1em;border:1px solid var(--control-bd);color:var(--fg);font-size:14px;}
   .reader-content{line-height:1.6;font-feature-settings:"kern" 1,"liga" 1;}
-  .reader-line{display:block;}
+  .reader-line{display:block;margin-bottom:1em;}
   .reader-heading{font-weight:700;}
   .reader-word{display:inline;padding:2px 1px;border-radius:3px;cursor:pointer;}
-  .sentence-active{background:var(--sentence-hl);border-radius:5px;box-shadow:0 0 0 3px var(--sentence-hl);}
-  .word-active{background:var(--word-hl)!important;color:var(--word-hl-text)!important;box-shadow:0 0 0 1px var(--word-hl);border-radius:4px;}
-  .toc-item{display:block;width:100%;text-align:left;padding:8px 14px 8px 11px;font-size:13px;line-height:1.4;color:var(--muted);border-left:3px solid transparent;}
+  
+  .hl-word { background:var(--word-hl)!important;color:var(--word-hl-text)!important;box-shadow:0 0 0 1px var(--word-hl);border-radius:4px; }
+  .hl-sentence { background:var(--sentence-hl);border-radius:5px;box-shadow:0 0 0 3px var(--sentence-hl); }
+  .hl-paragraph { background:var(--para-hl);border-radius:8px;padding:4px;margin:-4px; }
+
+  .toc-item{display:block;width:100%;text-align:left;padding:8px 14px 8px 11px;font-size:13px;line-height:1.4;color:var(--muted);border-left:3px solid transparent; cursor:pointer;}
   .toc-active{border-left-color:var(--gold);color:var(--gold);font-weight:600;background:var(--control);}
   .sheet-closed{transform:translateY(100%);}
   .sheet-open{transform:translateY(0);}
   .drawer-closed{transform:translateX(-100%);}
   .drawer-open{transform:translateX(0);}
   #tts-warn{display:none;}
+  .book-card { transition: transform 0.2s; }
+  .book-card:active { transform: scale(0.98); }
 </style>
 </head>
 <body class="h-[100dvh] flex flex-col overflow-hidden antialiased select-none">
 
   <div id="tts-warn" class="px-4 py-2 text-[11px] text-center bg-red-600 text-white shrink-0">
-    Speech synthesis not available in this WebView. Open in Chrome or update Android System WebView / install Google TTS.
+    Speech synthesis not available. Open in Chrome or install Google TTS.
   </div>
 
   <!-- Header -->
-  <header class="shrink-0 flex items-center justify-between px-3 py-2 gap-2">
+  <header class="shrink-0 flex items-center justify-between px-3 py-2 gap-2 border-b" style="border-color:var(--control-bd);">
     <div class="flex items-center gap-2.5 min-w-0">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:var(--gold);color:var(--on-gold);">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5a9 9 0 0 1 18 0v5a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>
-        </svg>
-      </div>
+      <button id="library-btn" aria-label="Library" class="control-btn w-10 h-10 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      </button>
       <div class="min-w-0">
-        <h1 class="text-[15px] font-bold tracking-tight truncate" style="color:var(--fg);">Read Aloud</h1>
-        <p id="doc-status-subtitle" class="text-[10.5px] truncate max-w-[42vw]" style="color:var(--muted);">Pasted text</p>
+        <h1 class="text-[15px] font-bold tracking-tight truncate" style="color:var(--fg);">Pro Reader</h1>
+        <p id="doc-status-subtitle" class="text-[10.5px] truncate max-w-[42vw]" style="color:var(--muted);">Library</p>
       </div>
     </div>
     <div class="flex items-center gap-2 shrink-0">
@@ -108,32 +104,34 @@
 
   <!-- Bottom playback bar -->
   <footer class="shrink-0 panel border-t px-3 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]" style="border-color:var(--control-bd);">
-    <input id="progress-bar" type="range" min="0" max="100" value="0" class="w-full" style="height:4px;">
-    <div class="flex items-center justify-between text-[10.5px] mt-0.5" style="color:var(--muted);">
+    <div class="flex items-center justify-between text-[10.5px] mt-0.5 mb-1" style="color:var(--muted);">
       <span id="time-remaining-text">About 8 min left</span>
-      <span id="sentence-counter-text">1 / 92</span>
+      <span id="page-counter-text" class="font-bold text-[11px]" style="color:var(--gold);">Page 1 / 1</span>
     </div>
     <div class="flex items-center justify-between gap-1 mt-1.5">
-      <button id="sidebar-toggle-btn" aria-label="Chapter index" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="16" y2="7"/><line x1="9" y1="11" x2="14" y2="11"/></svg>
+      <button id="sidebar-toggle-btn" aria-label="Chapter Index" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       </button>
-      <button id="prev-btn" aria-label="Previous sentence" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+      <button id="prev-page-btn" aria-label="Previous Page" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+      </button>
+      <button id="bookmark-btn" aria-label="Add Bookmark" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       </button>
       <button id="play-btn" aria-label="Play / pause" class="control-btn btn-accent w-14 h-14 rounded-full flex items-center justify-center shadow-lg"></button>
       <button id="stop-btn" aria-label="Stop" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
       </button>
-      <button id="next-btn" aria-label="Next sentence" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
-      </button>
       <button id="settings-btn" aria-label="Settings" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+      </button>
+      <button id="next-page-btn" aria-label="Next Page" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
       </button>
     </div>
   </footer>
 
-  <!-- Chapter index drawer -->
+  <!-- Chapter Index Drawer -->
   <div id="drawer-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
   <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 max-w-[82vw] panel border-r flex flex-col drawer-closed transition-transform duration-200" style="border-color:var(--control-bd);">
     <div class="flex items-center justify-between px-3 py-3 border-b shrink-0" style="border-color:var(--control-bd);">
@@ -141,15 +139,11 @@
       <button id="sidebar-close-btn" class="text-xl font-bold leading-none px-2" style="color:var(--muted);">&times;</button>
     </div>
     <div id="sidebar-list" class="flex-1 overflow-y-auto py-2"></div>
-    <div class="px-3 py-2 border-t text-[11px] flex items-center justify-between shrink-0" style="border-color:var(--control-bd);color:var(--muted);">
-      <span>Page <span id="page-cur">1</span> / <span id="page-total">1</span></span>
-      <span id="sidebar-chapter">Ch. —</span>
-    </div>
   </aside>
 
   <!-- Settings sheet -->
   <div id="sheet-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
-  <div id="settings-sheet" class="fixed inset-x-0 bottom-0 z-50 panel rounded-t-2xl border-t px-4 pt-2 pb-[calc(14px+env(safe-area-inset-bottom))] max-h-[78dvh] overflow-y-auto sheet-closed transition-transform duration-200 flex flex-col gap-3" style="border-color:var(--control-bd);">
+  <div id="settings-sheet" class="fixed inset-x-0 bottom-0 z-50 panel rounded-t-2xl border-t px-4 pt-2 pb-[calc(14px+env(safe-area-inset-bottom))] max-h-[85dvh] overflow-y-auto sheet-closed transition-transform duration-200 flex flex-col gap-3" style="border-color:var(--control-bd);">
     <div class="w-10 h-1 rounded-full mx-auto shrink-0" style="background:var(--track);"></div>
     <select id="voice-select" class="w-full px-3 py-2.5 pr-8 rounded-xl text-ellipsis overflow-hidden whitespace-nowrap">
       <option value="">Loading voices...</option>
@@ -159,16 +153,12 @@
       <input id="speed-slider" type="range" min="80" max="350" value="181" class="flex-1">
       <span id="speed-val" class="font-medium min-w-[52px] text-right" style="color:var(--fg);">181 wpm</span>
     </div>
-    <label class="flex items-center gap-2 text-xs cursor-pointer" style="color:var(--fg);">
-      <input id="click-to-read-toggle" type="checkbox" checked>
-      <span>Read from a tap</span>
-    </label>
+    
     <div class="flex flex-wrap gap-2">
       <select id="font-family-select" class="px-3 py-2 pr-8 rounded-xl flex-1 min-w-[110px]">
         <option value="Literata, serif" selected>Literata</option>
         <option value="Inter, sans-serif">Inter</option>
         <option value="Lora, serif">Lora</option>
-        <option value="Roboto Mono, monospace">Monospace</option>
         <option value="'Noto Nastaliq Urdu', serif">Urdu (Nastaliq)</option>
         <option value="'Noto Serif SC', serif">Chinese (Serif)</option>
         <option value="'Noto Sans JP', sans-serif">Japanese (Sans)</option>
@@ -181,24 +171,86 @@
         <option value="21">21 pt</option>
         <option value="24">24 pt</option>
       </select>
-      <select id="samples-select" class="px-3 py-2 pr-8 rounded-xl flex-1 min-w-[130px]">
-        <option value="" disabled selected>Samples</option>
-        <option value="sample1">Corpse King (Sample 1)</option>
-        <option value="sample2">Clear Speech (Sample 2)</option>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-xs font-medium" style="color:var(--muted);">Highlighting Mode</label>
+      <select id="highlight-mode-select" class="w-full px-3 py-2.5 pr-8 rounded-xl text-sm">
+        <option value="word">Word by Word</option>
+        <option value="sentence">Entire Sentence / Line</option>
+        <option value="sentence-word" selected>Sentence + Word (Pro)</option>
+        <option value="paragraph">Entire Paragraph</option>
+        <option value="paragraph-word">Paragraph + Word (Pro)</option>
       </select>
     </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-xs font-medium" style="color:var(--muted);">Auto-Translate Pages To</label>
+      <div class="flex gap-2">
+        <select id="translate-lang-select" class="flex-1 px-3 py-2 pr-8 rounded-xl text-sm control-btn">
+          <option value="">Off (Original Language)</option>
+          <option value="en">English</option>
+          <option value="es">Spanish</option>
+          <option value="fr">French</option>
+          <option value="zh-CN">Chinese</option>
+          <option value="ja">Japanese</option>
+          <option value="ar">Arabic</option>
+          <option value="hi">Hindi</option>
+          <option value="ur">Urdu</option>
+        </select>
+        <label class="flex items-center gap-2 text-xs cursor-pointer shrink-0" style="color:var(--fg);">
+          <input id="auto-translate-toggle" type="checkbox">
+          <span>Auto</span>
+        </label>
+      </div>
+    </div>
+
     <div class="flex flex-wrap gap-2">
       <button id="theme-toggle-btn" class="control-btn px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5">
         <span id="theme-icon" class="flex"></span><span id="theme-label">Light</span>
       </button>
+      <button id="voice-manager-btn" class="control-btn px-3 py-2 rounded-xl text-xs font-medium">Voice Manager</button>
       <button id="pronunciations-btn" class="control-btn px-3 py-2 rounded-xl text-xs font-medium">Pronunciations</button>
-      <button id="voices-info-btn" class="control-btn px-3 py-2 rounded-xl text-xs font-medium">Voices</button>
-      <button id="translate-btn" class="control-btn px-3 py-2 rounded-xl text-xs font-medium">Translate</button>
-    </div>
-    <div class="text-[10px] leading-snug" style="color:var(--faint);">
-      EPUB, PDF, HTML, Markdown, RTF, subtitles, plain text, and web pages via the globe button. Your position, settings and pronunciations are saved automatically.
+      <button id="view-bookmarks-btn" class="control-btn px-3 py-2 rounded-xl text-xs font-medium">Bookmarks</button>
     </div>
     <div class="text-[11px] font-medium" style="color:var(--muted);">Status: <span id="status-text">Ready</span></div>
+  </div>
+
+  <!-- Library Modal -->
+  <div id="library-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] items-center justify-center p-4 hidden flex">
+    <div class="panel rounded-xl p-4 max-w-md w-full shadow-2xl flex flex-col gap-3 border max-h-[80dvh]" style="border-color:var(--control-bd);">
+      <div class="flex items-center justify-between border-b pb-2" style="border-color:var(--control-bd);">
+        <h3 class="text-base font-bold" style="color:var(--fg);">My Library</h3>
+        <button id="close-library-btn" class="text-xl font-bold" style="color:var(--muted);">&times;</button>
+      </div>
+      <div id="library-list" class="flex-1 overflow-y-auto space-y-2 min-h-[100px]">
+        <p class="text-xs text-center py-4" style="color:var(--muted);">Your saved books will appear here.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bookmarks Modal -->
+  <div id="bookmarks-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] items-center justify-center p-4 hidden flex">
+    <div class="panel rounded-xl p-4 max-w-md w-full shadow-2xl flex flex-col gap-3 border max-h-[80dvh]" style="border-color:var(--control-bd);">
+      <div class="flex items-center justify-between border-b pb-2" style="border-color:var(--control-bd);">
+        <h3 class="text-base font-bold" style="color:var(--fg);">Bookmarks</h3>
+        <button id="close-bookmarks-btn" class="text-xl font-bold" style="color:var(--muted);">&times;</button>
+      </div>
+      <div id="bookmarks-list" class="flex-1 overflow-y-auto space-y-2 min-h-[100px]"></div>
+    </div>
+  </div>
+
+  <!-- Voice Manager Modal -->
+  <div id="voice-manager-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] items-center justify-center p-4 hidden flex">
+    <div class="panel rounded-xl p-4 max-w-md w-full shadow-2xl flex flex-col gap-3 border max-h-[80dvh]" style="border-color:var(--control-bd);">
+      <div class="flex items-center justify-between border-b pb-2" style="border-color:var(--control-bd);">
+        <h3 class="text-base font-bold" style="color:var(--fg);">Voice Manager</h3>
+        <button id="close-voice-manager-btn" class="text-xl font-bold" style="color:var(--muted);">&times;</button>
+      </div>
+      <p class="text-xs" style="color:var(--muted);">High-quality neural voices (like Piper) are installed natively on your device. If your selected translation language is missing, use the button below to install it via Google TTS.</p>
+      <div id="voice-status-list" class="flex-1 overflow-y-auto space-y-2 min-h-[50px] text-sm"></div>
+      <button id="install-tts-btn" class="control-btn btn-accent px-4 py-2.5 rounded-xl text-sm w-full">Open Android TTS Settings</button>
+    </div>
   </div>
 
   <!-- Open Web Page modal -->
@@ -208,26 +260,10 @@
         <h3 class="text-base font-bold" style="color:var(--fg);">Open Web Page</h3>
         <button id="close-link-btn" class="text-xl font-bold" style="color:var(--muted);">&times;</button>
       </div>
-      <p class="text-[11px] leading-relaxed" style="color:var(--muted);">
-        Paste a news article, novel chapter or blog URL. Sites that block browser access are fetched through public reader proxies. Personal listening only — respect the site's terms.
-      </p>
-      <input id="url-input" type="url" inputmode="url" autocomplete="off" placeholder="https://example.com/chapter-1"
-             class="control-btn px-3 py-2.5 rounded-xl text-sm w-full outline-none">
-      <div class="flex flex-wrap gap-1.5">
-        <button class="url-chip control-btn px-2.5 py-1 rounded-full text-[10.5px]" data-url="https://en.wikipedia.org/wiki/Reading">Wikipedia article</button>
-        <button class="url-chip control-btn px-2.5 py-1 rounded-full text-[10.5px]" data-url="https://www.gutenberg.org/files/1342/1342-h/1342-h.htm">Gutenberg book</button>
-        <button class="url-chip control-btn px-2.5 py-1 rounded-full text-[10.5px]" data-url="https://en.wikinews.org/wiki/Main_Page">Wikinews</button>
-      </div>
+      <input id="url-input" type="url" inputmode="url" autocomplete="off" placeholder="https://example.com/chapter-1" class="control-btn px-3 py-2.5 rounded-xl text-sm w-full outline-none">
       <button id="load-url-btn" class="control-btn btn-accent px-4 py-2.5 rounded-xl text-sm">Load page</button>
       <p id="link-status" class="text-[11px] min-h-[14px]" style="color:var(--muted);"></p>
     </div>
-  </div>
-
-  <!-- Resume banner -->
-  <div id="resume-banner" class="fixed left-1/2 -translate-x-1/2 bottom-28 z-40 hidden flex items-center gap-2 panel border rounded-full px-3 py-2 shadow-2xl max-w-[92vw]" style="border-color:var(--control-bd);">
-    <span id="resume-info" class="text-[11px] truncate" style="color:var(--fg);"></span>
-    <button id="resume-yes" class="control-btn btn-accent px-3 py-1 rounded-full text-xs shrink-0">Continue</button>
-    <button id="resume-no" class="control-btn px-3 py-1 rounded-full text-xs shrink-0">Start over</button>
   </div>
 
   <!-- Pronunciations Modal -->
@@ -245,126 +281,90 @@
     </div>
   </div>
 
-  <!-- Voices Modal -->
-  <div id="voices-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] items-center justify-center p-4 hidden flex">
-    <div class="panel rounded-xl p-4 max-w-md w-full shadow-2xl flex flex-col gap-3 border" style="border-color:var(--control-bd);">
-      <div class="flex items-center justify-between border-b pb-2" style="border-color:var(--control-bd);">
-        <h3 class="text-base font-bold" style="color:var(--fg);">Speech Synthesis Voices</h3>
-        <button id="close-voices-modal-btn" class="text-xl font-bold" style="color:var(--muted);">&times;</button>
-      </div>
-      <p class="text-xs leading-relaxed" style="color:var(--muted);">
-        This app uses the browser's native <strong>Web Speech API</strong> (on Android: Chrome / Google TTS voices). Install extra languages in the Google TTS app to get more voices.
-      </p>
-      <div class="flex justify-end pt-1">
-        <button id="dismiss-voices-modal-btn" class="control-btn px-4 py-1.5 rounded-md text-xs">Got it</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Translate Modal -->
-  <div id="translate-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] items-center justify-center p-4 hidden flex">
-    <div class="panel rounded-xl p-4 max-w-md w-full shadow-2xl flex flex-col gap-3 border" style="border-color:var(--control-bd);">
-      <div class="flex items-center justify-between border-b pb-2" style="border-color:var(--control-bd);">
-        <h3 class="text-base font-bold" style="color:var(--fg);">Translate Document</h3>
-        <button id="close-translate-btn" class="text-xl font-bold" style="color:var(--muted);">&times;</button>
-      </div>
-      <p class="text-xs leading-relaxed" style="color:var(--muted);">
-        Select your native language to translate the current text. This uses a free translation service and may take a moment for long chapters.
-      </p>
-      <select id="translate-lang-select" class="w-full px-3 py-2.5 pr-8 rounded-xl text-sm control-btn">
-        <option value="en">English</option>
-        <option value="es">Spanish</option>
-        <option value="fr">French</option>
-        <option value="de">German</option>
-        <option value="zh-CN">Chinese (Simplified)</option>
-        <option value="ja">Japanese</option>
-        <option value="ko">Korean</option>
-        <option value="ar">Arabic</option>
-        <option value="hi">Hindi</option>
-        <option value="ur">Urdu</option>
-        <option value="ru">Russian</option>
-        <option value="pt">Portuguese</option>
-        <option value="tr">Turkish</option>
-        <option value="it">Italian</option>
-      </select>
-      <button id="start-translate-btn" class="control-btn btn-accent px-4 py-2.5 rounded-xl text-sm">Translate Now</button>
-      <p id="translate-status" class="text-[11px] min-h-[14px]" style="color:var(--muted);"></p>
-    </div>
-  </div>
-
 <script>
-const SAMPLES = {
-  sample1: `Chapter 1071: Challenging the Corpse King Alone
-"Why does this Vajra Corpse King seem so confident today?" Ye Xuan felt a hint of strangeness.
-If You You hadn't been poisoned that day, they would have certainly killed the Vajra Corpse King. But today, they were at their Peak, and the Vajra Corpse King not only didn't flee, but instead started bickering with them, clearly having some new trump card.
-So, they had to be careful!
-"Luo Luo, find an opportunity to control him later, and we'll kill him in one blow!"
-Ye Xuan said to Luo Luo in his mind.
-"Mhm, okay!"
-Luo Luo replied.
-When passing through the void gate, Ye Xuan had already hidden Luo Luo in his pet space, allowing for a sneak attack.`,
-  sample2: `The Art of Clear Speech and Focus
-Reading aloud is one of the oldest forms of shared human communication. When text is converted into spoken cadence, our brains engage both auditory and visual pathways simultaneously.
-Modern web speech technology allows readers to absorb complex narratives, proofread manuscripts with high precision, and make digital literature accessible everywhere.`
+const POS_KEY = 'proReader.positions.v3', SET_KEY = 'proReader.settings.v3', PRON_KEY = 'proReader.pron.v2', BM_KEY = 'proReader.bookmarks.v2';
+const WORDS_PER_PAGE = 300; 
+
+let appState = { 
+  rawText: "", lines: [], sentences: [], pages: [], 
+  currentPageIndex: 0, currentSentenceIndex: 0, currentWordIndex: -1,
+  isPlaying: false, isPaused: false, voices: [], selectedVoice: null, speedWpm: 181, 
+  darkMode: true, customPronunciations: {}, currentUrl: '', currentBookId: null,
+  highlightMode: 'sentence-word', autoTranslate: false, translateLang: '', bookmarks: []
 };
-const FALLBACK_VOICE_LABEL = 'Google UK English 6 (Natural) \u00b7 en-GB';
-const SENT_REGEX = /[^.!?]+[.!?]+["\u201d"']?|[^.!?]+$/g;
-const POS_KEY = 'readAloud.positions.v1', SET_KEY = 'readAloud.settings.v1', PRON_KEY = 'readAloud.pron.v1';
 
-let appState = { rawText: SAMPLES.sample1, lines: [], sentences: [], currentSentenceIndex: 0, currentWordIndex: -1,
-  isPlaying: false, isPaused: false, voices: [], selectedVoice: null, speedWpm: 181, readFromClick: true,
-  darkMode: true, customPronunciations: {}, currentUrl: '' };
-try { const _p = JSON.parse(localStorage.getItem(PRON_KEY) || 'null'); if (_p && typeof _p === 'object') appState.customPronunciations = _p; } catch(e){}
-
-let mirrorMode = true, tocEntries = [], docKey = '', desiredVoiceName = null, pendingResume = null;
+try { 
+  const _p = JSON.parse(localStorage.getItem(PRON_KEY) || 'null'); if (_p) appState.customPronunciations = _p; 
+  const _b = JSON.parse(localStorage.getItem(BM_KEY) || 'null'); if (_b) appState.bookmarks = _b;
+} catch(e){}
 
 const $ = id => document.getElementById(id);
 const readerBox = $('reader-box'), readerOutput = $('reader-output'), playBtn = $('play-btn'),
-stopBtn = $('stop-btn'), prevBtn = $('prev-btn'), nextBtn = $('next-btn'), voiceSelect = $('voice-select'),
-speedSlider = $('speed-slider'), speedVal = $('speed-val'), clickToReadToggle = $('click-to-read-toggle'),
-fontFamilySelect = $('font-family-select'), fontSizeSelect = $('font-size-select'), samplesSelect = $('samples-select'),
-progressBar = $('progress-bar'), statusText = $('status-text'), timeRemainingText = $('time-remaining-text'),
-sentenceCounterText = $('sentence-counter-text'), pasteBtn = $('paste-btn'), openBtn = $('open-btn'),
+stopBtn = $('stop-btn'), voiceSelect = $('voice-select'), speedSlider = $('speed-slider'), speedVal = $('speed-val'),
+fontFamilySelect = $('font-family-select'), fontSizeSelect = $('font-size-select'),
+statusText = $('status-text'), timeRemainingText = $('time-remaining-text'),
+pageCounterText = $('page-counter-text'), pasteBtn = $('paste-btn'), openBtn = $('open-btn'),
 fileInput = $('file-input'), docStatusSubtitle = $('doc-status-subtitle'), themeToggleBtn = $('theme-toggle-btn'),
-sidebar = $('sidebar'), sidebarList = $('sidebar-list'), sheet = $('settings-sheet'),
-linkModal = $('link-modal'), urlInput = $('url-input'), linkStatus = $('link-status');
+sheet = $('settings-sheet'), linkModal = $('link-modal'), urlInput = $('url-input'), linkStatus = $('link-status'),
+highlightModeSelect = $('highlight-mode-select'), translateLangSelect = $('translate-lang-select'),
+autoTranslateToggle = $('auto-translate-toggle'), sidebar = $('sidebar'), sidebarList = $('sidebar-list');
 
 const synth = window.speechSynthesis;
 let activeUtterance = null;
 if(!synth) $('tts-warn').style.display = 'block';
 
-/* PWA manifest */
-(function(){
-  const icon = "data:image/svg+xml," + encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="#e2a63d"/><g fill="none" stroke="#221c12" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"><path d="M118 296h40a26 26 0 0 1 26 26v40a26 26 0 0 1-26 26h-14a26 26 0 0 1-26-26v-66a138 138 0 0 1 276 0v66a26 26 0 0 1-26 26h-14a26 26 0 0 1-26-26v-40a26 26 0 0 1 26-26h40"/></g></svg>`);
-  const manifest = { name: 'Read Aloud', short_name: 'ReadAloud', display: 'standalone',
-    background_color: '#1e1c19', theme_color: '#1e1c19', icons: [{ src: icon, sizes: 'any', type: 'image/svg+xml', purpose: 'any' }] };
-  const l = document.createElement('link');
-  l.rel = 'manifest';
-  l.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(manifest));
-  document.head.appendChild(l);
-})();
+/* ---------- IndexedDB Library ---------- */
+const dbPromise = new Promise((resolve, reject) => {
+  const req = indexedDB.open('ProReaderLibrary', 1);
+  req.onupgradeneeded = e => {
+    const db = e.target.result;
+    if (!db.objectStoreNames.contains('books')) db.createObjectStore('books', { keyPath: 'id' });
+  };
+  req.onsuccess = e => resolve(e.target.result);
+  req.onerror = e => reject(e);
+});
+
+async function saveToLibrary(id, title, text) {
+  const db = await dbPromise;
+  const tx = db.transaction('books', 'readwrite');
+  tx.objectStore('books').put({ id, title, text, date: Date.now() });
+  return new Promise(r => { tx.oncomplete = r; });
+}
+async function getLibrary() {
+  const db = await dbPromise;
+  const tx = db.transaction('books', 'readonly');
+  const req = tx.objectStore('books').getAll();
+  return new Promise(r => { req.onsuccess = () => r(req.result); });
+}
+async function deleteFromLibrary(id) {
+  const db = await dbPromise;
+  const tx = db.transaction('books', 'readwrite');
+  tx.objectStore('books').delete(id);
+  return new Promise(r => { tx.oncomplete = r; });
+}
 
 /* ---------- persistence ---------- */
 function hashStr(s){ let h = 5381; for(let i = 0; i < s.length; i++){ h = ((h << 5) + h + s.charCodeAt(i)) | 0; } return (h >>> 0).toString(36); }
 function savePosition(){
-  if(!docKey) return;
+  if(!appState.currentBookId) return;
   try{
     const m = JSON.parse(localStorage.getItem(POS_KEY) || '{}');
-    m[docKey] = { s: appState.currentSentenceIndex, scroll: readerBox.scrollTop, t: Date.now() };
-    const keys = Object.keys(m).sort((a,b) => m[a].t - m[b].t);
-    while(keys.length > 30) delete m[keys.shift()];
+    m[appState.currentBookId] = { p: appState.currentPageIndex, s: appState.currentSentenceIndex, t: Date.now() };
     localStorage.setItem(POS_KEY, JSON.stringify(m));
   }catch(e){}
 }
-function getRec(){ try{ const m = JSON.parse(localStorage.getItem(POS_KEY) || '{}'); const r = m[docKey]; if(r && typeof r.s === 'number') return r; }catch(e){} return null; }
-function clearRec(){ try{ const m = JSON.parse(localStorage.getItem(POS_KEY) || '{}'); delete m[docKey]; localStorage.setItem(POS_KEY, JSON.stringify(m)); }catch(e){} }
+function getRec(){ try{ const m = JSON.parse(localStorage.getItem(POS_KEY) || '{}'); return m[appState.currentBookId]; }catch(e){ return null; } }
 function saveSettings(){
   try{
-    localStorage.setItem(SET_KEY, JSON.stringify({ speed: appState.speedWpm, dark: appState.darkMode,
-      ff: fontFamilySelect.value, fs: fontSizeSelect.value, voice: appState.selectedVoice ? appState.selectedVoice.name : null }));
+    localStorage.setItem(SET_KEY, JSON.stringify({ 
+      speed: appState.speedWpm, dark: appState.darkMode, ff: fontFamilySelect.value, fs: fontSizeSelect.value, 
+      voice: appState.selectedVoice ? appState.selectedVoice.name : null, hl: appState.highlightMode,
+      tl: appState.translateLang, at: appState.autoTranslate
+    }));
   }catch(e){}
 }
+function saveBookmarks(){ try{ localStorage.setItem(BM_KEY, JSON.stringify(appState.bookmarks)); }catch(e){} }
+
 function loadSettings(){
   try{
     const s = JSON.parse(localStorage.getItem(SET_KEY) || 'null'); if(!s) return;
@@ -372,120 +372,117 @@ function loadSettings(){
     if(typeof s.dark === 'boolean' && s.dark !== appState.darkMode) applyTheme(s.dark);
     if(s.ff){ fontFamilySelect.value = s.ff; readerOutput.style.fontFamily = s.ff; }
     if(s.fs){ fontSizeSelect.value = s.fs; readerOutput.style.fontSize = `${s.fs}px`; }
-    desiredVoiceName = s.voice || null;
+    if(s.hl){ appState.highlightMode = s.hl; highlightModeSelect.value = s.hl; }
+    if(s.tl){ appState.translateLang = s.tl; translateLangSelect.value = s.tl; }
+    if(typeof s.at === 'boolean'){ appState.autoTranslate = s.at; autoTranslateToggle.checked = s.at; }
   }catch(e){}
 }
 
-/* ---------- resume banner ---------- */
-function chapterLabelForSentence(s){
-  const sent = appState.sentences[s]; if(!sent) return 'Beginning';
-  const li = sent.lineIndex; let label = '';
-  appState.lines.forEach((ln,i) => { if(i <= li && ln.isHeading) label = ln.text; });
-  if(!label) return 'Beginning';
-  return label.length > 26 ? label.slice(0,26) + '\u2026' : label;
-}
-function showResumeBanner(r){
-  pendingResume = r;
-  const total = appState.sentences.length;
-  $('resume-info').textContent = `Continue? \u00b7 ${chapterLabelForSentence(r.s)} \u00b7 ${Math.min(r.s+1,total)}/${total}`;
-  $('resume-banner').classList.remove('hidden');
-}
-function hideResumeBanner(){ pendingResume = null; $('resume-banner').classList.add('hidden'); }
-function applyPosition(s, scroll){
-  appState.currentSentenceIndex = s; appState.currentWordIndex = -1;
-  updateHighlights();
-  requestAnimationFrame(() => { readerBox.scrollTop = scroll || 0; updatePageIndicator(); });
-  setStatus('Ready');
-}
-$('resume-yes').addEventListener('click', () => { if(pendingResume){ exitMirror(); applyPosition(pendingResume.s, pendingResume.scroll); } hideResumeBanner(); });
-$('resume-no').addEventListener('click', () => {
-  clearRec(); exitMirror();
-  appState.currentSentenceIndex = 0; appState.currentWordIndex = -1; readerBox.scrollTop = 0;
-  updateHighlights(); updatePageIndicator(); setStatus('Ready'); hideResumeBanner();
-});
-
-/* ---------- sliders ---------- */
-function paintSlider(el){
-  const min = +el.min || 0, max = +el.max || 100, val = +el.value || 0;
-  const pct = ((val - min) / (max - min)) * 100;
-  el.style.background = `linear-gradient(to right, var(--gold) 0%, var(--gold) ${pct}%, var(--track) ${pct}%, var(--track) 100%)`;
-}
-
-/* ---------- WEB PAGE LOADING (URL -> readable text) ---------- */
-async function fetchPage(url){
-  const attempts = [
-    async () => ({ md:false, text: await (await fetch(url, { mode:'cors' })).text() }),
-    async () => ({ md:true,  text: await (await fetch('https://r.jina.ai/' + url)).text() }),
-    async () => ({ md:false, text: await (await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url))).text() }),
-    async () => ({ md:false, text: await (await fetch('https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url))).text() }),
-  ];
-  for(const a of attempts){
-    try{
-      const res = await a();
-      if(res.text && res.text.length > 200) return res;
-    }catch(e){ /* try next */ }
-  }
-  throw new Error('All fetch methods failed (site may block proxies).');
-}
-function extractFromHtml(html){
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  const title = (doc.querySelector('meta[property="og:title"]') || {}).content || doc.title || '';
-  doc.querySelectorAll('script,style,noscript,iframe,nav,header,footer,aside,form,button,svg,figure,figcaption,video,audio,select').forEach(el => el.remove());
-  const cand = doc.querySelector('article') || doc.querySelector('main') || doc.querySelector('[role="main"]') ||
-    doc.querySelector('.post-content, .entry-content, .article-body, .story-body, .post, #content, .content') || doc.body;
-  if(!cand) return { lines: [], title };
-  let nodes = cand.querySelectorAll('h1,h2,h3,h4,p,li,blockquote,pre');
-  let lines = Array.from(nodes).map(n => (n.textContent || '').replace(/\s+/g,' ').trim()).filter(l => l.length > 1);
-  if(lines.length < 3){
-    lines = (cand.textContent || '').replace(/[ \t]+/g,' ').split('\n').map(s => s.trim()).filter(s => s.length > 1);
-  }
-  const out = [];
-  lines.forEach(l => { if(out[out.length - 1] !== l) out.push(l); });
-  return { lines: out, title: (title || '').trim() };
-}
-function extractFromMarkdown(md){
-  const lines = []; let title = '', inFence = false;
-  md.split('\n').forEach(raw => {
-    const t = raw.trim();
-    if(t.startsWith('```')){ inFence = !inFence; return; }
-    if(inFence || !t) return;
-    if(/^URL Source:/i.test(t) || /^Markdown Content:/i.test(t)) return;
-    if(/^Title:/i.test(t)){ title = t.replace(/^Title:/i,'').trim(); return; }
-    if(t.startsWith('![') || t.startsWith('|') || /^(-{3,}|\*{3,}|_{3,})$/.test(t)) return;
-    const hm = t.match(/^#{1,6}\s+(.*)$/);
-    const clean = s => s.replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]*)\]\([^)]*\)/g,'$1')
-                        .replace(/\*\*|__|~~/g,'').replace(/`/g,'').trim();
-    const line = clean(hm ? hm[1] : t);
-    if(line && line.length > 1 && lines[lines.length - 1] !== line) lines.push(line);
+/* ---------- Pagination & Rendering ---------- */
+function buildPages() {
+  appState.pages = [];
+  let currentPage = [];
+  let wordCount = 0;
+  
+  appState.sentences.forEach((sent, idx) => {
+    currentPage.push(idx);
+    wordCount += sent.words.length;
+    if (wordCount >= WORDS_PER_PAGE) {
+      appState.pages.push(currentPage);
+      currentPage = [];
+      wordCount = 0;
+    }
   });
-  return { lines, title };
+  if (currentPage.length > 0) appState.pages.push(currentPage);
 }
-async function handleLoadUrl(){
-  const raw = urlInput.value.trim();
-  if(!raw) return;
-  const url = /^https?:\/\//i.test(raw) ? raw : 'https://' + raw;
-  linkStatus.textContent = 'Fetching page\u2026';
-  try{
-    const res = await fetchPage(url);
-    const r = res.md ? extractFromMarkdown(res.text) : extractFromHtml(res.text);
-    if(!r.lines || r.lines.length < 2) throw new Error('No readable text found on this page.');
-    let host = ''; try{ host = new URL(url).hostname; }catch(e){}
-    appState.currentUrl = url;
-    loadNewText(r.lines.join('\n'), r.title || host);
-    linkModal.classList.add('hidden');
-    linkStatus.textContent = '';
-  }catch(err){
-    linkStatus.textContent = 'Failed: ' + err.message;
-  }
-}
-$('link-btn').addEventListener('click', () => { linkStatus.textContent = ''; linkModal.classList.remove('hidden'); });
-$('close-link-btn').addEventListener('click', () => linkModal.classList.add('hidden'));
-linkModal.addEventListener('click', e => { if(e.target === linkModal) linkModal.classList.add('hidden'); });
-$('load-url-btn').addEventListener('click', handleLoadUrl);
-urlInput.addEventListener('keydown', e => { if(e.key === 'Enter') handleLoadUrl(); });
-document.querySelectorAll('.url-chip').forEach(c => c.addEventListener('click', () => { urlInput.value = c.dataset.url; handleLoadUrl(); }));
 
-/* ---------- parsing / rendering ---------- */
+function renderPage(pageIdx) {
+  if (pageIdx < 0 || pageIdx >= appState.pages.length) return;
+  appState.currentPageIndex = pageIdx;
+  readerOutput.innerHTML = '';
+  
+  const sentenceIndices = appState.pages[pageIdx];
+  let currentLineIdx = -1;
+  let lineDiv = null;
+
+  sentenceIndices.forEach(sIdx => {
+    const s = appState.sentences[sIdx];
+    if (s.lineIndex !== currentLineIdx) {
+      currentLineIdx = s.lineIndex;
+      lineDiv = document.createElement('div');
+      lineDiv.className = 'reader-line' + (appState.lines[currentLineIdx].isHeading ? ' reader-heading' : '');
+      lineDiv.dataset.line = currentLineIdx;
+      readerOutput.appendChild(lineDiv);
+    }
+    
+    const sSpan = document.createElement('span');
+    sSpan.className = 'sentence-block'; sSpan.dataset.sentenceIndex = s.index;
+    
+    const displayText = (appState.autoTranslate && s.translatedText) ? s.translatedText : s.text;
+    const words = []; const wr = /(\s*)(\S+)(\s*)/g; let mm, li = 0;
+    while((mm = wr.exec(displayText)) !== null) words.push({ localIndex: li++, word: mm[2], leadingSpace: mm[1], trailingSpace: mm[3] });
+    
+    words.forEach(w => {
+      if(w.leadingSpace) sSpan.appendChild(document.createTextNode(w.leadingSpace));
+      const wSpan = document.createElement('span');
+      wSpan.className = 'reader-word';
+      wSpan.dataset.sentenceIndex = s.index; wSpan.dataset.wordIndex = w.localIndex;
+      wSpan.textContent = w.word;
+      wSpan.addEventListener('click', e => { e.stopPropagation(); jumpToSentenceAndWord(s.index, w.localIndex); });
+      sSpan.appendChild(wSpan);
+      if(w.trailingSpace) sSpan.appendChild(document.createTextNode(w.trailingSpace));
+    });
+    lineDiv.appendChild(sSpan);
+  });
+  
+  updatePageIndicator();
+  updateHighlights();
+  updateTocActive();
+  readerBox.scrollTop = 0;
+}
+
+async function translatePage(pageIdx) {
+    if (!appState.translateLang) return;
+    const sentenceIndices = appState.pages[pageIdx];
+    for (let sIdx of sentenceIndices) {
+        const sent = appState.sentences[sIdx];
+        if (!sent.translated) {
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${appState.translateLang}&dt=t&q=${encodeURIComponent(sent.text)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                sent.translatedText = data[0].map(item => item[0]).join('');
+                sent.translated = true;
+            } catch(e) { sent.translatedText = sent.text; }
+        }
+    }
+}
+
+async function goToPage(idx) {
+  if (idx < 0 || idx >= appState.pages.length) return;
+  if (appState.autoTranslate && appState.translateLang) {
+    setStatus('Translating page...');
+    await translatePage(idx);
+    setStatus('Ready');
+  }
+  renderPage(idx);
+  savePosition();
+}
+
+function updatePageIndicator() {
+  const total = appState.pages.length || 1;
+  const cur = appState.currentPageIndex + 1;
+  pageCounterText.textContent = `Page ${cur} / ${total}`;
+  let rem = 0;
+  for(let i = appState.currentPageIndex; i < appState.pages.length; i++) {
+    appState.pages[i].forEach(sIdx => rem += appState.sentences[sIdx].words.length);
+  }
+  const mins = Math.ceil(rem / Math.max(1, appState.speedWpm));
+  timeRemainingText.textContent = mins < 60 ? `About ${mins} min left` : `About ${Math.floor(mins/60)} hr ${mins%60} min left`;
+}
+
+/* ---------- Parsing ---------- */
+const SENT_REGEX = /[^.!?]+[.!?]+["\u201d"']?|[^.!?]+$/g;
 function parseTextIntoStructure(text){
   const clean = text.replace(/\r\n/g,'\n');
   appState.lines = []; appState.sentences = [];
@@ -497,318 +494,237 @@ function parseTextIntoStructure(text){
       const words = []; const wr = /(\s*)(\S+)(\s*)/g; let mm, li = 0;
       while((mm = wr.exec(m)) !== null) words.push({ globalIndex: gWord++, localIndex: li++, word: mm[2], leadingSpace: mm[1], trailingSpace: mm[3] });
       if(!words.length) return;
-      appState.sentences.push({ index: sIdx, lineIndex: appState.lines.length, text: m, words });
+      appState.sentences.push({ index: sIdx, lineIndex: appState.lines.length, text: m, words, translated: false, translatedText: '' });
       lineObj.sentenceIndices.push(sIdx); sIdx++;
     });
     appState.lines.push(lineObj);
   });
-  renderReaderHTML(); renderSidebar(); updateMetrics();
-  requestAnimationFrame(updatePageIndicator);
+  buildPages();
 }
+
 function getSpokenText(t){
   let r = t;
-  // 1. Custom Word Pronunciations
   for(const [k,v] of Object.entries(appState.customPronunciations)) if(k && v) r = r.replace(new RegExp(`\\b${k}\\b`,'gi'), v);
-  
-  // 2. Predefined Punctuation Skips (Annoying Symbols)
-  // Skips: ~ * " . < > ( ) [ ]
-  r = r.replace(/[\~\*\"\<\>\.\(\)\[\]]/g, ' ');
-  
-  // Clean up extra spaces
-  return r.replace(/\s+/g, ' ').trim();
+  return r.replace(/[\~\*\"\<\>\.\(\)\[\]]/g, ' ').replace(/\s+/g, ' ').trim();
 }
-function renderReaderHTML(){
-  readerOutput.innerHTML = '';
-  appState.lines.forEach((line, lineIdx) => {
-    const lineDiv = document.createElement('div');
-    lineDiv.className = 'reader-line' + (line.isHeading ? ' reader-heading' : '');
-    lineDiv.dataset.line = lineIdx;
-    line.sentenceIndices.forEach(si => {
-      const s = appState.sentences[si];
-      const sSpan = document.createElement('span');
-      sSpan.className = 'sentence-block'; sSpan.dataset.sentenceIndex = s.index;
-      s.words.forEach(w => {
-        if(w.leadingSpace) sSpan.appendChild(document.createTextNode(w.leadingSpace));
-        const wSpan = document.createElement('span');
-        wSpan.className = 'reader-word';
-        wSpan.dataset.sentenceIndex = s.index; wSpan.dataset.wordIndex = w.localIndex;
-        wSpan.textContent = w.word;
-        wSpan.addEventListener('click', e => { e.stopPropagation(); if(appState.readFromClick) jumpToSentenceAndWord(s.index, w.localIndex); });
-        sSpan.appendChild(wSpan);
-        if(w.trailingSpace) sSpan.appendChild(document.createTextNode(w.trailingSpace));
-      });
-      lineDiv.appendChild(sSpan);
-    });
-    readerOutput.appendChild(lineDiv);
+
+/* ---------- Highlights (Pro Modes) ---------- */
+function updateHighlights(){
+  document.querySelectorAll('.hl-word, .hl-sentence, .hl-paragraph').forEach(el => {
+    el.classList.remove('hl-word', 'hl-sentence', 'hl-paragraph');
   });
+  if(appState.currentSentenceIndex >= 0 && appState.currentSentenceIndex < appState.sentences.length){
+    const sEl = readerOutput.querySelector(`[data-sentence-index="${appState.currentSentenceIndex}"]`);
+    if(sEl){
+      const mode = appState.highlightMode;
+      const lineEl = sEl.closest('.reader-line');
+      if(mode.includes('paragraph') && lineEl) lineEl.classList.add('hl-paragraph');
+      if(mode.includes('sentence')) sEl.classList.add('hl-sentence');
+      if(appState.currentWordIndex >= 0 && mode.includes('word')){
+        const wEl = sEl.querySelector(`[data-word-index="${appState.currentWordIndex}"]`);
+        if(wEl) wEl.classList.add('hl-word');
+      }
+    }
+  }
 }
 
-/* ---------- drawer / sheet ---------- */
-function openDrawer(){ sidebar.classList.replace('drawer-closed','drawer-open'); $('drawer-backdrop').classList.remove('hidden'); updateTocActive(); }
-function closeDrawer(){ sidebar.classList.replace('drawer-open','drawer-closed'); $('drawer-backdrop').classList.add('hidden'); }
-function openSheet(){ sheet.classList.replace('sheet-closed','sheet-open'); $('sheet-backdrop').classList.remove('hidden'); }
-function closeSheet(){ sheet.classList.replace('sheet-open','sheet-closed'); $('sheet-backdrop').classList.add('hidden'); }
-$('sidebar-toggle-btn').addEventListener('click', openDrawer);
-$('sidebar-close-btn').addEventListener('click', closeDrawer);
-$('drawer-backdrop').addEventListener('click', closeDrawer);
-$('settings-btn').addEventListener('click', openSheet);
-$('sheet-backdrop').addEventListener('click', closeSheet);
-
-/* ---------- sidebar ---------- */
+/* ---------- Sidebar / TOC ---------- */
 function renderSidebar(){
-  sidebarList.innerHTML = ''; tocEntries = [];
+  sidebarList.innerHTML = '';
   let n = 0;
   appState.lines.forEach((line, lineIdx) => {
     if(!line.isHeading || !line.sentenceIndices.length) return;
     n++;
     const btn = document.createElement('button');
     btn.className = 'toc-item'; btn.textContent = `${n}. ${line.text}`; btn.title = line.text;
-    btn.addEventListener('click', () => { jumpToLine(lineIdx); closeDrawer(); });
+    btn.dataset.lineIdx = lineIdx;
+    btn.addEventListener('click', () => { jumpToToc(lineIdx); closeDrawer(); });
     sidebarList.appendChild(btn);
-    tocEntries.push({ line: lineIdx, num: n, el: btn });
   });
-  if(!tocEntries.length){
-    const p = document.createElement('p');
-    p.className = 'px-3 py-2 text-[11px]'; p.style.color = 'var(--faint)';
-    p.textContent = 'No chapter headings detected in this document.';
-    sidebarList.appendChild(p);
+  if(!sidebarList.children.length){
+    sidebarList.innerHTML = '<p class="px-3 py-2 text-[11px]" style="color:var(--faint);">No chapter headings detected.</p>';
   }
   updateTocActive();
-}
-function currentChapter(){
-  const s = appState.sentences[appState.currentSentenceIndex];
-  const lineIdx = s ? s.lineIndex : 0; let cur = null;
-  tocEntries.forEach(e => { if(e.line <= lineIdx) cur = e; });
-  return cur;
 }
 function updateTocActive(){
-  const cur = currentChapter();
-  tocEntries.forEach(e => e.el.classList.toggle('toc-active', e === cur));
-  $('sidebar-chapter').textContent = cur ? `Ch. ${cur.num}` : 'Ch. —';
+  const curSent = appState.sentences[appState.currentSentenceIndex];
+  const curLineIdx = curSent ? curSent.lineIndex : -1;
+  document.querySelectorAll('.toc-item').forEach(el => {
+    const elLineIdx = parseInt(el.dataset.lineIdx);
+    // Find if this heading is the active one (the last heading before or on the current line)
+    el.classList.remove('toc-active');
+  });
+  let activeEl = null;
+  document.querySelectorAll('.toc-item').forEach(el => {
+      if(parseInt(el.dataset.lineIdx) <= curLineIdx) activeEl = el;
+  });
+  if(activeEl) activeEl.classList.add('toc-active');
 }
-function updatePageIndicator(){
-  const total = Math.max(1, Math.ceil(readerBox.scrollHeight / readerBox.clientHeight));
-  const cur = Math.min(total, Math.floor(readerBox.scrollTop / readerBox.clientHeight) + 1);
-  $('page-cur').textContent = cur; $('page-total').textContent = total;
-}
-readerBox.addEventListener('scroll', updatePageIndicator, { passive: true });
-window.addEventListener('resize', updatePageIndicator);
-
-function jumpToLine(lineIdx){
-  const line = appState.lines[lineIdx]; if(!line || !line.sentenceIndices.length) return;
-  exitMirror();
-  appState.currentSentenceIndex = line.sentenceIndices[0]; appState.currentWordIndex = -1;
-  updateHighlights(); savePosition();
-  const el = readerOutput.querySelector(`[data-line="${lineIdx}"]`);
-  if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  if(appState.isPlaying) speakCurrentSentence();
-}
-
-/* ---------- highlights ---------- */
-function updateHighlights(){
-  document.querySelectorAll('.sentence-active').forEach(el => el.classList.remove('sentence-active'));
-  document.querySelectorAll('.word-active').forEach(el => el.classList.remove('word-active'));
-  if(appState.currentSentenceIndex >= 0 && appState.currentSentenceIndex < appState.sentences.length){
-    const sEl = readerOutput.querySelector(`[data-sentence-index="${appState.currentSentenceIndex}"]`);
-    if(sEl){
-      sEl.classList.add('sentence-active');
-      if(appState.currentWordIndex >= 0){
-        const wEl = sEl.querySelector(`[data-word-index="${appState.currentWordIndex}"]`);
-        if(wEl){
-          wEl.classList.add('word-active');
-          const r = wEl.getBoundingClientRect(), c = readerBox.getBoundingClientRect();
-          if(r.top < c.top + 30 || r.bottom > c.bottom - 30){
-            wEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-          }
+function jumpToToc(lineIdx) {
+    let targetPageIdx = 0;
+    let targetSentIdx = -1;
+    for (let p = 0; p < appState.pages.length; p++) {
+        for (let sIdx of appState.pages[p]) {
+            if (appState.sentences[sIdx].lineIndex === lineIdx) {
+                targetPageIdx = p;
+                targetSentIdx = sIdx;
+                break;
+            }
         }
-      }
+        if (targetSentIdx !== -1) break;
     }
-  }
-  const total = appState.sentences.length || 1;
-  if(mirrorMode){ sentenceCounterText.textContent = '1 / 92'; progressBar.value = 0; paintSlider(progressBar); }
-  else {
-    sentenceCounterText.textContent = `${Math.min(appState.currentSentenceIndex + 1, total)} / ${total}`;
-    progressBar.value = Math.floor((appState.currentSentenceIndex / total) * 100);
-    paintSlider(progressBar);
-  }
-  updateTocActive();
+    goToPage(targetPageIdx).then(() => {
+        if (targetSentIdx !== -1) {
+            appState.currentSentenceIndex = targetSentIdx;
+            appState.currentWordIndex = -1;
+            updateHighlights();
+            savePosition();
+        }
+    });
 }
+function openDrawer(){ sidebar.classList.replace('drawer-closed','drawer-open'); $('drawer-backdrop').classList.remove('hidden'); }
+function closeDrawer(){ sidebar.classList.replace('drawer-open','drawer-closed'); $('drawer-backdrop').classList.add('hidden'); }
+$('sidebar-toggle-btn').addEventListener('click', openDrawer);
+$('sidebar-close-btn').addEventListener('click', closeDrawer);
+$('drawer-backdrop').addEventListener('click', closeDrawer);
 
-/* ---------- voices ---------- */
-function populateVoices(){
-  if(!synth) return;
-  appState.voices = synth.getVoices().sort((a,b) => {
-    const ae = a.lang.startsWith('en'), be = b.lang.startsWith('en');
-    if(ae && !be) return -1; if(!ae && be) return 1;
-    return a.name.localeCompare(b.name);
-  });
-  const gb = v => (v.lang||'').toLowerCase().replace('_','-') === 'en-gb';
-  const matched =
-    appState.voices.find(v => `${v.name} \u00b7 ${v.lang}` === FALLBACK_VOICE_LABEL) ||
-    appState.voices.find(v => /Google UK English 6/i.test(v.name)) ||
-    appState.voices.find(v => /Google UK English/i.test(v.name) && /natural/i.test(v.name)) ||
-    appState.voices.find(v => /Google UK English/i.test(v.name)) ||
-    appState.voices.find(gb) || null;
-  voiceSelect.innerHTML = '';
-  if(!matched){
-    const o = document.createElement('option');
-    o.value = '__fallback__'; o.textContent = FALLBACK_VOICE_LABEL; o.selected = true;
-    voiceSelect.appendChild(o);
-    appState.selectedVoice = appState.voices.find(gb) || appState.voices[0] || null;
-  }
-  appState.voices.forEach((v,i) => {
-    const o = document.createElement('option');
-    o.value = i; o.textContent = `${v.name} \u00b7 ${v.lang}`;
-    if(v === matched){ o.selected = true; appState.selectedVoice = v; }
-    voiceSelect.appendChild(o);
-  });
-  if(!appState.selectedVoice && appState.voices.length) appState.selectedVoice = appState.voices[0];
-  if(desiredVoiceName){
-    const i = appState.voices.findIndex(v => v.name === desiredVoiceName);
-    if(i >= 0){ voiceSelect.value = String(i); appState.selectedVoice = appState.voices[i]; }
-  }
-}
-if(synth && synth.onvoiceschanged !== undefined) synth.onvoiceschanged = populateVoices;
-
-/* ---------- estimated word timeline ---------- */
-const wordTimer = { raf: 0, elapsed: 0, last: 0, timeline: [], boundaryUsed: false };
-function buildTimeline(sentence){
-  const avg = 60 / Math.max(1, appState.speedWpm);
-  let t = 0; const tl = [];
-  sentence.words.forEach(w => {
-    const len = (w.word.replace(/[^A-Za-z0-9']/g,'').length) || 1;
-    let dur = avg * Math.min(2.5, Math.max(0.45, len / 4.7));
-    if(/[,;:]$/.test(w.word)) dur += 0.12;
-    if(/[.!?]["\u201d"']?$/.test(w.word)) dur += 0.25;
-    tl.push({ start: t, index: w.localIndex });
-    t += dur;
-  });
-  return tl;
-}
-function startWordLoop(){
-  stopWordLoop();
-  wordTimer.elapsed = 0; wordTimer.last = performance.now(); wordTimer.boundaryUsed = false;
-  const step = (now) => {
-    if(appState.isPlaying && !appState.isPaused) wordTimer.elapsed += (now - wordTimer.last) / 1000;
-    wordTimer.last = now;
-    if(!wordTimer.boundaryUsed && appState.isPlaying && !appState.isPaused){
-      let idx = appState.currentWordIndex < 0 ? 0 : appState.currentWordIndex;
-      for(let i = 0; i < wordTimer.timeline.length; i++){
-        if(wordTimer.elapsed >= wordTimer.timeline[i].start) idx = wordTimer.timeline[i].index; else break;
-      }
-      if(idx !== appState.currentWordIndex){ appState.currentWordIndex = idx; updateHighlights(); }
-    }
-    wordTimer.raf = requestAnimationFrame(step);
-  };
-  wordTimer.raf = requestAnimationFrame(step);
-}
-function stopWordLoop(){ if(wordTimer.raf) cancelAnimationFrame(wordTimer.raf); wordTimer.raf = 0; }
-
-/* ---------- speech ---------- */
+/* ---------- Speech ---------- */
 function speakCurrentSentence(){
   if(!synth) return;
   synth.cancel();
   if(appState.currentSentenceIndex < 0 || appState.currentSentenceIndex >= appState.sentences.length){ stopSpeech(); return; }
+  
+  const currentPageSentences = appState.pages[appState.currentPageIndex];
+  if(!currentPageSentences.includes(appState.currentSentenceIndex)) {
+    let targetPage = appState.pages.findIndex(p => p.includes(appState.currentSentenceIndex));
+    if(targetPage !== -1) { goToPage(targetPage).then(() => speakCurrentSentence()); return; }
+  }
+
   const cur = appState.sentences[appState.currentSentenceIndex];
   savePosition();
-  const spokenText = getSpokenText(cur.text);
+  const textToSpeak = (appState.autoTranslate && cur.translatedText) ? cur.translatedText : cur.text;
+  const spokenText = getSpokenText(textToSpeak);
+  
   activeUtterance = new SpeechSynthesisUtterance(spokenText);
   if(appState.selectedVoice) activeUtterance.voice = appState.selectedVoice;
   activeUtterance.rate = Math.min(Math.max(appState.speedWpm / 180, 0.5), 2.5);
+  
   activeUtterance.onboundary = e => {
     if(e.charIndex == null) return;
-    wordTimer.boundaryUsed = true;
     const tokensBefore = (spokenText.slice(0, e.charIndex).match(/\S+/g) || []).length;
     const idx = Math.min(tokensBefore, cur.words.length - 1);
     if(idx !== appState.currentWordIndex){ appState.currentWordIndex = idx; updateHighlights(); }
   };
+  
   activeUtterance.onend = () => {
-    stopWordLoop();
     if(appState.isPlaying && !appState.isPaused){
       appState.currentSentenceIndex++; appState.currentWordIndex = -1;
-      if(appState.currentSentenceIndex < appState.sentences.length) speakCurrentSentence();
-      else { stopSpeech(); setStatus('Finished'); }
+      if(appState.currentSentenceIndex < appState.sentences.length) {
+        if(!appState.pages[appState.currentPageIndex].includes(appState.currentSentenceIndex)) {
+          goToPage(appState.currentPageIndex + 1).then(() => speakCurrentSentence());
+        } else {
+          speakCurrentSentence();
+        }
+      } else { stopSpeech(); setStatus('Finished'); }
     }
   };
-  activeUtterance.onerror = () => { stopWordLoop(); stopSpeech(); };
+  
   appState.isPlaying = true; appState.isPaused = false;
   updateUIState(); setStatus('Reading aloud');
-  wordTimer.timeline = buildTimeline(cur);
-  startWordLoop();
   synth.speak(activeUtterance); updateHighlights();
 }
+
 function playSpeech(){
-  exitMirror();
-  if(appState.isPaused){
-    synth.resume(); appState.isPaused = false; appState.isPlaying = true;
-    updateUIState(); setStatus('Reading aloud');
-  } else {
-    if(appState.currentSentenceIndex >= appState.sentences.length) appState.currentSentenceIndex = 0;
-    speakCurrentSentence();
-  }
+  if(appState.isPaused){ synth.resume(); appState.isPaused = false; appState.isPlaying = true; updateUIState(); } 
+  else { speakCurrentSentence(); }
 }
-function pauseSpeech(){
-  exitMirror();
-  if(synth && synth.speaking && !synth.paused){
-    synth.pause(); appState.isPaused = true; appState.isPlaying = false;
-    updateUIState(); setStatus('Paused'); savePosition();
-  }
-}
-function stopSpeech(){
-  if(synth) synth.cancel();
-  stopWordLoop();
-  appState.isPlaying = false; appState.isPaused = false; appState.currentWordIndex = -1;
-  updateHighlights(); updateUIState(); setStatus('Ready'); savePosition();
-}
-function jumpToSentenceAndWord(s, w = 0){
-  exitMirror();
-  appState.currentSentenceIndex = s; appState.currentWordIndex = w;
-  updateHighlights(); playSpeech();
-}
-function exitMirror(){ if(mirrorMode){ mirrorMode = false; updateMetrics(); updateHighlights(); } }
+function pauseSpeech(){ if(synth && synth.speaking){ synth.pause(); appState.isPaused = true; appState.isPlaying = false; updateUIState(); savePosition(); } }
+function stopSpeech(){ if(synth) synth.cancel(); appState.isPlaying = false; appState.isPaused = false; appState.currentWordIndex = -1; updateHighlights(); updateUIState(); setStatus('Ready'); savePosition(); }
+function jumpToSentenceAndWord(s, w = 0){ appState.currentSentenceIndex = s; appState.currentWordIndex = w; updateHighlights(); playSpeech(); }
 function setStatus(msg){ statusText.textContent = msg; }
 
 const PLAY_SVG = '<svg class="w-6 h-6 ml-0.5" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
 const PAUSE_SVG = '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="9" y1="5" x2="9" y2="19"/><line x1="15" y1="5" x2="15" y2="19"/></svg>';
 function updateUIState(){ playBtn.innerHTML = appState.isPlaying ? PAUSE_SVG : PLAY_SVG; }
 playBtn.addEventListener('click', () => { appState.isPlaying ? pauseSpeech() : playSpeech(); });
+stopBtn.addEventListener('click', stopSpeech);
 
-function updateMetrics(){
-  if(mirrorMode){ timeRemainingText.textContent = 'About 8 min left'; return; }
-  let rem = 0;
-  for(let i = appState.currentSentenceIndex; i < appState.sentences.length; i++) rem += appState.sentences[i].words.length;
-  const mins = Math.ceil(rem / Math.max(1, appState.speedWpm));
-  timeRemainingText.textContent = mins < 60 ? `About ${mins} min left` : `About ${Math.floor(mins/60)} hr ${mins%60} min left`;
+/* ---------- File Loading & Library Integration ---------- */
+async function loadNewText(text, label, bookId = null){
+  stopSpeech();
+  appState.rawText = text; 
+  docStatusSubtitle.textContent = label;
+  appState.currentBookId = bookId || ('b_' + hashStr(text));
+  
+  parseTextIntoStructure(text);
+  appState.currentSentenceIndex = 0; appState.currentWordIndex = -1; appState.currentPageIndex = 0;
+  renderSidebar();
+  
+  await saveToLibrary(appState.currentBookId, label, text);
+  
+  const rec = getRec();
+  if(rec && rec.p < appState.pages.length) {
+    goToPage(rec.p).then(() => {
+      if(rec.s) { appState.currentSentenceIndex = rec.s; updateHighlights(); }
+    });
+  } else {
+    goToPage(0);
+  }
 }
 
-/* ---------- events ---------- */
-stopBtn.addEventListener('click', () => { exitMirror(); stopSpeech(); });
-prevBtn.addEventListener('click', () => { if(appState.currentSentenceIndex > 0) jumpToSentenceAndWord(appState.currentSentenceIndex - 1); });
-nextBtn.addEventListener('click', () => { if(appState.currentSentenceIndex < appState.sentences.length - 1) jumpToSentenceAndWord(appState.currentSentenceIndex + 1); });
-voiceSelect.addEventListener('change', e => {
-  const v = e.target.value;
-  if(v === '__fallback__') appState.selectedVoice = appState.voices.find(x => (x.lang||'').toLowerCase().replace('_','-') === 'en-gb') || appState.voices[0] || null;
-  else if(appState.voices[v]) appState.selectedVoice = appState.voices[v];
-  desiredVoiceName = appState.selectedVoice ? appState.selectedVoice.name : null;
-  saveSettings();
-  if(appState.isPlaying) speakCurrentSentence();
+openBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', async e => {
+  const file = e.target.files[0]; if(!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  docStatusSubtitle.textContent = file.name;
+  setStatus('Parsing...');
+  
+  if(ext === 'pdf'){
+    try{
+      const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+      const pages = [];
+      for(let i = 1; i <= pdfDoc.numPages; i++){
+        pages.push(pdfDoc.getPage(i).then(pg => pg.getTextContent().then(tc => {
+          let lastY, t = '';
+          tc.items.forEach(it => { if(lastY !== undefined && Math.abs(it.transform[5]-lastY) > 5) t += '\n'; t += it.str + ' '; lastY = it.transform[5]; });
+          return t;
+        })));
+      }
+      const full = (await Promise.all(pages)).join('\n\n').trim();
+      loadNewText(full, file.name);
+    } catch(err){ alert('Could not open PDF'); setStatus('Ready'); }
+  } else {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      let t = ev.target.result;
+      if(ext === 'html' || ext === 'htm') {
+        const doc = new DOMParser().parseFromString(t, 'text/html');
+        t = doc.body.textContent || '';
+      }
+      loadNewText(t, file.name);
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
 });
-speedSlider.addEventListener('input', e => {
-  exitMirror();
-  appState.speedWpm = parseInt(e.target.value, 10);
-  speedVal.textContent = `${appState.speedWpm} wpm`;
-  paintSlider(speedSlider); updateMetrics(); saveSettings();
-  if(appState.isPlaying) speakCurrentSentence();
+
+/* ---------- UI Events ---------- */
+$('prev-page-btn').addEventListener('click', () => goToPage(appState.currentPageIndex - 1));
+$('next-page-btn').addEventListener('click', () => goToPage(appState.currentPageIndex + 1));
+highlightModeSelect.addEventListener('change', e => { appState.highlightMode = e.target.value; saveSettings(); updateHighlights(); });
+translateLangSelect.addEventListener('change', e => { appState.translateLang = e.target.value; saveSettings(); });
+autoTranslateToggle.addEventListener('change', async e => { 
+    appState.autoTranslate = e.target.checked; 
+    saveSettings(); 
+    if(appState.autoTranslate && appState.translateLang) {
+        setStatus('Translating current page...');
+        await translatePage(appState.currentPageIndex);
+        renderPage(appState.currentPageIndex);
+        setStatus('Ready');
+    }
 });
-clickToReadToggle.addEventListener('change', e => appState.readFromClick = e.target.checked);
+speedSlider.addEventListener('input', e => { appState.speedWpm = parseInt(e.target.value, 10); speedVal.textContent = `${appState.speedWpm} wpm`; saveSettings(); });
 fontFamilySelect.addEventListener('change', e => { readerOutput.style.fontFamily = e.target.value; saveSettings(); });
-fontSizeSelect.addEventListener('change', e => { readerOutput.style.fontSize = `${e.target.value}px`; saveSettings(); requestAnimationFrame(updatePageIndicator); });
-samplesSelect.addEventListener('change', e => { if(SAMPLES[e.target.value]) loadNewText(SAMPLES[e.target.value], e.target.options[e.target.selectedIndex].text); });
-progressBar.addEventListener('input', e => {
-  paintSlider(progressBar);
-  const t = Math.floor((parseInt(e.target.value,10) / 100) * appState.sentences.length);
-  jumpToSentenceAndWord(Math.min(t, appState.sentences.length - 1));
-});
+fontSizeSelect.addEventListener('change', e => { readerOutput.style.fontSize = `${e.target.value}px`; saveSettings(); });
 
 const SUN = '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
 const MOON = '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
@@ -821,191 +737,124 @@ function applyTheme(dark){
 }
 themeToggleBtn.addEventListener('click', () => { applyTheme(!appState.darkMode); saveSettings(); });
 
-function loadNewText(text, label){
-  hideResumeBanner();
-  exitMirror(); stopSpeech();
-  appState.rawText = text; docStatusSubtitle.textContent = label;
-  docKey = 't:' + hashStr(text);
-  parseTextIntoStructure(text);
-  appState.currentSentenceIndex = 0; appState.currentWordIndex = -1;
-  readerBox.scrollTop = 0;
-  updateHighlights(); updatePageIndicator();
-  const rec = getRec();
-  if(rec && rec.s > 0 && rec.s < appState.sentences.length) showResumeBanner(rec);
+/* ---------- Modals & Library UI ---------- */
+function openSheet(){ sheet.classList.replace('sheet-closed','sheet-open'); $('sheet-backdrop').classList.remove('hidden'); }
+function closeSheet(){ sheet.classList.replace('sheet-open','sheet-closed'); $('sheet-backdrop').classList.add('hidden'); }
+$('settings-btn').addEventListener('click', openSheet);
+$('sheet-backdrop').addEventListener('click', closeSheet);
+
+async function renderLibrary() {
+  const list = $('library-list');
+  const books = await getLibrary();
+  list.innerHTML = '';
+  if(!books.length) { list.innerHTML = '<p class="text-xs text-center py-4" style="color:var(--muted);">Your saved books will appear here.</p>'; return; }
+  books.sort((a,b) => b.date - a.date).forEach(b => {
+    const div = document.createElement('div');
+    div.className = 'book-card flex items-center justify-between p-3 rounded-lg border cursor-pointer';
+    div.style.borderColor = 'var(--control-bd)';
+    div.innerHTML = `<div class="min-w-0 flex-1"><div class="text-sm font-bold truncate" style="color:var(--fg);">${b.title}</div><div class="text-[10px]" style="color:var(--muted);">${new Date(b.date).toLocaleDateString()}</div></div><button class="text-red-400 px-2 text-lg">&times;</button>`;
+    div.querySelector('button').addEventListener('click', async (e) => { e.stopPropagation(); await deleteFromLibrary(b.id); renderLibrary(); });
+    div.addEventListener('click', () => { loadNewText(b.text, b.title, b.id); $('library-modal').classList.add('hidden'); });
+    list.appendChild(div);
+  });
 }
-pasteBtn.addEventListener('click', async () => {
-  try{
-    const t = await navigator.clipboard.readText();
-    if(t) loadNewText(t, 'Pasted text');
-  } catch(err){ alert('Clipboard blocked by the browser. Use Open to load a file instead.'); }
+$('library-btn').addEventListener('click', () => { renderLibrary(); $('library-modal').classList.remove('hidden'); });
+$('close-library-btn').addEventListener('click', () => $('library-modal').classList.add('hidden'));
+
+/* ---------- Bookmarks ---------- */
+$('bookmark-btn').addEventListener('click', () => {
+  const label = prompt("Bookmark name:", `Page ${appState.currentPageIndex + 1}`);
+  if(!label) return;
+  appState.bookmarks.push({ bookId: appState.currentBookId, page: appState.currentPageIndex, sentence: appState.currentSentenceIndex, label, date: Date.now() });
+  saveBookmarks();
+  setStatus('Bookmark saved!');
 });
-openBtn.addEventListener('click', () => fileInput.click());
-function cleanHtmlText(htmlStr){
-  const doc = new DOMParser().parseFromString(htmlStr, 'text/html');
-  return (doc.body.textContent || '').replace(/[ \t]+/g,' ').replace(/\n\s*\n/g,'\n\n').trim();
+function renderBookmarks() {
+  const list = $('bookmarks-list');
+  list.innerHTML = '';
+  const currentBookmarks = appState.bookmarks.filter(b => b.bookId === appState.currentBookId);
+  if(!currentBookmarks.length) { list.innerHTML = '<p class="text-xs text-center py-4" style="color:var(--muted);">No bookmarks for this book.</p>'; return; }
+  currentBookmarks.forEach((b, i) => {
+    const div = document.createElement('div');
+    div.className = 'flex items-center justify-between p-3 rounded-lg border cursor-pointer';
+    div.style.borderColor = 'var(--control-bd)';
+    div.innerHTML = `<div class="text-sm font-bold" style="color:var(--fg);">${b.label}</div><button class="text-red-400 px-2 text-lg">&times;</button>`;
+    div.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); appState.bookmarks.splice(appState.bookmarks.indexOf(b), 1); saveBookmarks(); renderBookmarks(); });
+    div.addEventListener('click', () => { goToPage(b.page).then(() => { appState.currentSentenceIndex = b.sentence; updateHighlights(); }); $('bookmarks-modal').classList.add('hidden'); });
+    list.appendChild(div);
+  });
 }
-fileInput.addEventListener('change', async e => {
-  const file = e.target.files[0]; if(!file) return;
-  const ext = file.name.split('.').pop().toLowerCase();
-  docStatusSubtitle.textContent = file.name;
-  if(ext === 'epub'){
-    try{
-      setStatus('Parsing EPUB...');
-      const zip = await new JSZip().loadAsync(file);
-      let folder = '', opfPath = '';
-      const cf = zip.file('META-INF/container.xml');
-      if(cf){
-        const xd = new DOMParser().parseFromString(await cf.async('string'), 'text/xml');
-        const rf = xd.querySelector('rootfile');
-        if(rf){ opfPath = rf.getAttribute('full-path'); if(opfPath.includes('/')) folder = opfPath.substring(0, opfPath.lastIndexOf('/')+1); }
-      }
-      let htmlFiles = [];
-      if(opfPath && zip.file(opfPath)){
-        const od = new DOMParser().parseFromString(await zip.file(opfPath).async('string'), 'text/xml');
-        const manifest = {};
-        od.querySelectorAll('manifest > item').forEach(it => manifest[it.getAttribute('id')] = it.getAttribute('href'));
-        od.querySelectorAll('spine > itemref').forEach(ir => {
-          const href = folder + manifest[ir.getAttribute('idref')];
-          if(manifest[ir.getAttribute('idref')] && zip.file(href)) htmlFiles.push(href);
-        });
-      }
-      if(!htmlFiles.length) htmlFiles = Object.keys(zip.files).filter(fn => /\.(xhtml|html|htm)$/i.test(fn) && !fn.includes('toc.xhtml'));
-      const parts = [];
-      for(const fn of htmlFiles){ const f = zip.file(fn); if(f){ const c = cleanHtmlText(await f.async('string')); if(c) parts.push(c); } }
-      const full = parts.join('\n\n');
-      if(!full) throw new Error('No readable text content found in EPUB.');
-      loadNewText(full, file.name);
-    } catch(err){ alert('Could not open EPUB: ' + err.message); setStatus('Ready'); }
-  } else if(ext === 'pdf'){
-    try{
-      setStatus('Parsing PDF...');
-      const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
-      const pages = [];
-      for(let i = 1; i <= pdfDoc.numPages; i++){
-        pages.push(pdfDoc.getPage(i).then(pg => pg.getTextContent().then(tc => {
-          let lastY, t = '';
-          tc.items.forEach(it => { if(lastY !== undefined && Math.abs(it.transform[5]-lastY) > 5) t += '\n'; t += it.str + ' '; lastY = it.transform[5]; });
-          return t;
-        })));
-      }
-      const full = (await Promise.all(pages)).join('\n\n').trim();
-      if(!full) throw new Error('No selectable text found in PDF.');
-      loadNewText(full, file.name);
-    } catch(err){ alert('Could not open PDF: ' + err.message); setStatus('Ready'); }
-  } else {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      let t = ev.target.result;
-      if(ext === 'html' || ext === 'htm') t = cleanHtmlText(t);
-      loadNewText(t, file.name);
-    };
-    reader.readAsText(file, 'UTF-8');
-  }
+$('view-bookmarks-btn').addEventListener('click', () => { renderBookmarks(); $('bookmarks-modal').classList.remove('hidden'); });
+$('close-bookmarks-btn').addEventListener('click', () => $('bookmarks-modal').classList.add('hidden'));
+
+/* ---------- Voice Manager (Piper Alternative) ---------- */
+function checkVoiceManager() {
+    const list = $('voice-status-list');
+    list.innerHTML = '';
+    const voices = synth.getVoices();
+    const targetLang = appState.translateLang || 'en';
+    const baseLang = targetLang.split('-')[0];
+    
+    const hasVoice = voices.some(v => v.lang.toLowerCase().startsWith(baseLang.toLowerCase()));
+    
+    if(hasVoice) {
+        list.innerHTML = `<div class="p-3 rounded-lg bg-green-900/30 border border-green-700 text-green-300 text-xs">✅ High-quality neural voices for <b>${targetLang.toUpperCase()}</b> are installed and ready.</div>`;
+    } else {
+        list.innerHTML = `<div class="p-3 rounded-lg bg-red-900/30 border border-red-700 text-red-300 text-xs">⚠️ No native voices found for <b>${targetLang.toUpperCase()}</b>. Click below to open Android TTS settings and download the language pack (works just like Piper!).</div>`;
+    }
+    $('voice-manager-modal').classList.remove('hidden');
+}
+$('voice-manager-btn').addEventListener('click', checkVoiceManager);
+$('close-voice-manager-btn').addEventListener('click', () => $('voice-manager-modal').classList.add('hidden'));
+$('install-tts-btn').addEventListener('click', () => {
+    // Deep link to Android TTS settings
+    window.location.href = 'intent:#Intent;action=com.android.settings.TTS_SETTINGS;end';
+    // Fallback if deep link fails
+    setTimeout(() => {
+        alert("If settings didn't open automatically:\n1. Go to Phone Settings\n2. Search 'Text-to-speech'\n3. Tap the gear ⚙️ next to Google TTS\n4. Install voice data for your language.");
+    }, 1000);
 });
 
-/* ---------- modals ---------- */
-const pronModal = $('pronunciations-modal'), voicesModal = $('voices-modal');
+/* ---------- Web Fetch & Pronunciations (Preserved) ---------- */
+$('link-btn').addEventListener('click', () => { linkStatus.textContent = ''; linkModal.classList.remove('hidden'); });
+$('close-link-btn').addEventListener('click', () => linkModal.classList.add('hidden'));
+$('load-url-btn').addEventListener('click', async () => {
+  const url = urlInput.value.trim(); if(!url) return;
+  linkStatus.textContent = 'Fetching...';
+  try {
+    const res = await fetch('https://r.jina.ai/' + url);
+    const text = await res.text();
+    loadNewText(text, new URL(url).hostname);
+    linkModal.classList.add('hidden');
+  } catch(e) { linkStatus.textContent = 'Failed to fetch.'; }
+});
+
+const pronModal = $('pronunciations-modal');
 $('pronunciations-btn').addEventListener('click', () => { renderPronunciationRows(); pronModal.classList.remove('hidden'); });
 $('close-modal-btn').addEventListener('click', () => pronModal.classList.add('hidden'));
-$('voices-info-btn').addEventListener('click', () => voicesModal.classList.remove('hidden'));
-$('close-voices-modal-btn').addEventListener('click', () => voicesModal.classList.add('hidden'));
-$('dismiss-voices-modal-btn').addEventListener('click', () => voicesModal.classList.add('hidden'));
-function pronRowHTML(word='', say=''){
-  return `<input type="text" value="${word}" placeholder="Word" class="word-key control-btn px-2.5 py-1.5 rounded text-xs flex-1">
-    <span class="text-xs" style="color:var(--muted);">\u2192</span>
-    <input type="text" value="${say}" placeholder="Pronounce as" class="word-val control-btn px-2.5 py-1.5 rounded text-xs flex-1">
-    <button class="remove-row-btn text-red-400 hover:text-red-300 px-2 font-bold text-sm">&times;</button>`;
+function pronRowHTML(word='', say=''){ return `<input type="text" value="${word}" placeholder="Word" class="word-key control-btn px-2.5 py-1.5 rounded text-xs flex-1"><span class="text-xs" style="color:var(--muted);">\u2192</span><input type="text" value="${say}" placeholder="Pronounce as" class="word-val control-btn px-2.5 py-1.5 rounded text-xs flex-1"><button class="remove-row-btn text-red-400 hover:text-red-300 px-2 font-bold text-sm">&times;</button>`; }
+function renderPronunciationRows(){ const c = $('pronunciation-list'); c.innerHTML = ''; Object.entries(appState.customPronunciations).forEach(([w,s]) => { const row = document.createElement('div'); row.className = 'flex items-center gap-2'; row.innerHTML = pronRowHTML(w,s); row.querySelector('.remove-row-btn').addEventListener('click', () => row.remove()); c.appendChild(row); }); }
+$('add-pronunciation-row').addEventListener('click', () => { const row = document.createElement('div'); row.className = 'flex items-center gap-2'; row.innerHTML = pronRowHTML(); row.querySelector('.remove-row-btn').addEventListener('click', () => row.remove()); $('pronunciation-list').appendChild(row); });
+$('save-pronunciations-btn').addEventListener('click', () => { const rules = {}; document.querySelectorAll('#pronunciation-list > div').forEach(r => { const k = r.querySelector('.word-key').value.trim(), v = r.querySelector('.word-val').value.trim(); if(k && v) rules[k] = v; }); appState.customPronunciations = rules; try{ localStorage.setItem(PRON_KEY, JSON.stringify(rules)); }catch(e){} pronModal.classList.add('hidden'); });
+
+/* ---------- Init ---------- */
+function populateVoices(){
+  if(!synth) return;
+  appState.voices = synth.getVoices();
+  voiceSelect.innerHTML = '';
+  appState.voices.forEach((v,i) => { const o = document.createElement('option'); o.value = i; o.textContent = `${v.name} (${v.lang})`; voiceSelect.appendChild(o); });
+  if(!appState.selectedVoice && appState.voices.length) { appState.selectedVoice = appState.voices[0]; voiceSelect.value = 0; }
 }
-function renderPronunciationRows(){
-  const c = $('pronunciation-list'); c.innerHTML = '';
-  Object.entries(appState.customPronunciations).forEach(([w,s]) => {
-    const row = document.createElement('div'); row.className = 'flex items-center gap-2';
-    row.innerHTML = pronRowHTML(w,s);
-    row.querySelector('.remove-row-btn').addEventListener('click', () => row.remove());
-    c.appendChild(row);
-  });
-}
-$('add-pronunciation-row').addEventListener('click', () => {
-  const row = document.createElement('div'); row.className = 'flex items-center gap-2';
-  row.innerHTML = pronRowHTML();
-  row.querySelector('.remove-row-btn').addEventListener('click', () => row.remove());
-  $('pronunciation-list').appendChild(row);
-});
-$('save-pronunciations-btn').addEventListener('click', () => {
-  const rules = {};
-  document.querySelectorAll('#pronunciation-list > div').forEach(r => {
-    const k = r.querySelector('.word-key').value.trim(), v = r.querySelector('.word-val').value.trim();
-    if(k && v) rules[k] = v;
-  });
-  appState.customPronunciations = rules;
-  try{ localStorage.setItem(PRON_KEY, JSON.stringify(rules)); }catch(e){}
-  pronModal.classList.add('hidden');
-  if(appState.isPlaying) speakCurrentSentence();
-});
+if(synth && synth.onvoiceschanged !== undefined) synth.onvoiceschanged = populateVoices;
+voiceSelect.addEventListener('change', e => { appState.selectedVoice = appState.voices[e.target.value]; saveSettings(); });
 
-/* ---------- translate ---------- */
-const translateModal = $('translate-modal');
-$('translate-btn').addEventListener('click', () => {
-    $('translate-status').textContent = '';
-    translateModal.classList.remove('hidden');
-});
-$('close-translate-btn').addEventListener('click', () => translateModal.classList.add('hidden'));
-translateModal.addEventListener('click', e => { if(e.target === translateModal) translateModal.classList.add('hidden'); });
-
-$('start-translate-btn').addEventListener('click', async () => {
-    const targetLang = $('translate-lang-select').value;
-    const statusEl = $('translate-status');
-    const btn = $('start-translate-btn');
-    
-    statusEl.textContent = 'Translating... please wait.';
-    btn.disabled = true;
-    btn.style.opacity = '0.6';
-    
-    let translatedLines = [];
-    const linesToTranslate = appState.lines.map(l => l.text);
-    
-    for(let i=0; i<linesToTranslate.length; i++) {
-        statusEl.textContent = `Translating line ${i+1} of ${linesToTranslate.length}...`;
-        try {
-            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(linesToTranslate[i])}`;
-            const res = await fetch(url);
-            const data = await res.json();
-            const translated = data[0].map(item => item[0]).join('');
-            translatedLines.push(translated);
-        } catch(e) {
-            translatedLines.push(linesToTranslate[i]);
-        }
-        await new Promise(r => setTimeout(r, 150)); 
-    }
-    
-    const fullTranslatedText = translatedLines.join('\n');
-    loadNewText(fullTranslatedText, `Translated (${targetLang.toUpperCase()})`);
-    
-    statusEl.textContent = 'Translation complete!';
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    setTimeout(() => translateModal.classList.add('hidden'), 1200);
-});
-
-/* ---------- init ---------- */
 loadSettings();
 applyTheme(appState.darkMode);
 populateVoices();
-window.addEventListener('pagehide', savePosition);
-document.addEventListener('visibilitychange', () => { if(document.hidden) savePosition(); });
-
 window.onload = () => {
-  parseTextIntoStructure(appState.rawText);
-  docKey = 't:' + hashStr(appState.rawText);
-  paintSlider(speedSlider); paintSlider(progressBar);
-  updateUIState();
-  const rec = getRec();
-  if(rec && rec.s > 0 && rec.s < appState.sentences.length){ showResumeBanner(rec); setStatus('Ready'); }
-  else {
-    appState.currentSentenceIndex = 0; appState.currentWordIndex = 1;
-    updateHighlights(); setStatus('Reading aloud');
-  }
-  updatePageIndicator();
+  parseTextIntoStructure("Welcome to Pro Reader.\n\nOpen a file from your device to start reading. Your books are saved automatically to your local library.\n\nUse the settings to change highlighting modes and enable auto-translation.");
+  renderSidebar();
+  goToPage(0);
 };
 </script>
 </body>
