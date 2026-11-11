@@ -7,1824 +7,1863 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta id="meta-theme" name="theme-color" content="#1e1c19">
-<title>Pro Reader</title>
+<title>Ultra Pro Reader</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<script>
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<!-- OCR is loaded on demand only for scanned or badly encoded PDF pages. -->
+
 <style>
-  :root{
+  :root {
     --bg:#1e1c19; --panel:#282521; --control:#343029; --control-bd:#45403a;
     --control-hv:#403b33; --reader:#1a1815; --reader-bd:#2e2a25;
     --fg:#eceae4; --muted:#a8a29a; --faint:#8a857c;
     --gold:#e2a63d; --gold-hv:#efb54e; --on-gold:#221c12;
     --track:#6e6a62;
     --sentence-hl:#2f6b4b; --word-hl:#98cf9c; --word-hl-text:#12291a;
-    --para-hl:rgba(47, 107, 75, 0.25);
+    --para-hl:rgba(47,107,75,.25);
     --arrow:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23d8d3ca'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpolyline%20points='6%209%2012%2015%2018%209'/%3E%3C/svg%3E");
   }
-  body.light-mode{
-    --bg:#f2f0eb; --panel:#e6e3dc; --control:#ffffff; --control-bd:#d3cfc6;
+
+  body.light-mode {
+    --bg:#f2f0eb; --panel:#e6e3dc; --control:#fff; --control-bd:#d3cfc6;
     --control-hv:#f0ede6; --reader:#fbfaf8; --reader-bd:#d8d4cb;
     --fg:#211d18; --muted:#5f5a52; --faint:#7a756c; --track:#c4bfb4;
     --sentence-hl:#cfe8d2; --word-hl:#83c98b; --word-hl-text:#142b18;
-    --para-hl:rgba(131, 201, 139, 0.3);
+    --para-hl:rgba(131,201,139,.3);
     --arrow:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%235f5a52'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpolyline%20points='6%209%2012%2015%2018%209'/%3E%3C/svg%3E");
   }
-  html,body{height:100%;}
-  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--fg);-webkit-tap-highlight-color:transparent;overscroll-behavior:none;}
-  button,select,input,label{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-  .panel{background:var(--panel);}
-  .control-btn{background:var(--control);border:1px solid var(--control-bd);color:var(--fg);transition:background .15s;}
-  .control-btn:hover,.control-btn:active{background:var(--control-hv);}
-  .btn-accent{background:var(--gold)!important;border-color:var(--gold)!important;color:var(--on-gold)!important;font-weight:600;}
-  input[type=checkbox]{accent-color:#4285f4;width:16px;height:16px;}
-  input[type=range]{-webkit-appearance:none;appearance:none;height:5px;border-radius:99px;background:var(--track);outline:none;cursor:pointer;}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;height:18px;width:18px;margin-top:-6.5px;border-radius:50%;background:var(--gold);border:none;box-shadow:0 0 4px rgba(0,0,0,.35);}
-  ::-webkit-scrollbar{width:0;height:0;}
-  select{appearance:none;-webkit-appearance:none;-moz-appearance:none;background-color:var(--control);background-image:var(--arrow);background-repeat:no-repeat;background-position:right .55rem center;background-size:1em 1em;border:1px solid var(--control-bd);color:var(--fg);font-size:14px;}
-  .reader-content{line-height:1.6;font-feature-settings:"kern" 1,"liga" 1;}
-  .reader-line{display:block;margin-bottom:1em;}
-  .reader-heading{font-weight:700;}
-  .reader-word{display:inline;padding:2px 1px;border-radius:3px;cursor:pointer;}
-  
-  .hl-word { background:var(--word-hl)!important;color:var(--word-hl-text)!important;box-shadow:0 0 0 1px var(--word-hl);border-radius:4px; }
-  .hl-sentence { background:var(--sentence-hl);border-radius:5px;box-shadow:0 0 0 3px var(--sentence-hl); }
-  .hl-paragraph { background:var(--para-hl);border-radius:8px;padding:4px;margin:-4px; }
 
-  .toc-item{display:block;width:100%;text-align:left;padding:8px 14px 8px 11px;font-size:13px;line-height:1.4;color:var(--muted);border-left:3px solid transparent; cursor:pointer;}
-  .toc-active{border-left-color:var(--gold);color:var(--gold);font-weight:600;background:var(--control);}
-  .sheet-closed{transform:translateY(100%);}
-  .sheet-open{transform:translateY(0);}
-  .drawer-closed{transform:translateX(-100%);}
-  .drawer-open{transform:translateX(0);}
-  #tts-warn{display:none;}
-  .book-card { transition: transform 0.2s; }
-  .book-card:active { transform: scale(0.98); }
+  html, body { height:100%; }
+  body {
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg); color:var(--fg);
+    -webkit-tap-highlight-color:transparent;
+    overscroll-behavior:none;
+  }
+  button, select, input, label {
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .panel { background:var(--panel); }
+  .control-btn {
+    background:var(--control); border:1px solid var(--control-bd);
+    color:var(--fg); transition:background .15s;
+  }
+  .control-btn:hover, .control-btn:active { background:var(--control-hv); }
+  .btn-accent {
+    background:var(--gold)!important; border-color:var(--gold)!important;
+    color:var(--on-gold)!important; font-weight:600;
+  }
+  input[type=checkbox] { accent-color:#4285f4; width:16px; height:16px; }
+  input[type=range] {
+    -webkit-appearance:none; appearance:none; height:5px;
+    border-radius:99px; background:var(--track); outline:none; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance:none; height:18px; width:18px; margin-top:-6.5px;
+    border-radius:50%; background:var(--gold); border:none;
+    box-shadow:0 0 4px rgba(0,0,0,.35);
+  }
+  /* Scrollbar with arrow buttons (Chrome, Edge, Safari desktop) */
+  ::-webkit-scrollbar { width:18px; height:18px; }
+  ::-webkit-scrollbar-track { background:var(--reader-bd); }
+  ::-webkit-scrollbar-thumb {
+    background:var(--track); border-radius:9px; border:3px solid var(--reader-bd); min-height:40px; min-width:40px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background:var(--gold); }
+  ::-webkit-scrollbar-corner { background:var(--reader-bd); }
+  ::-webkit-scrollbar-button:single-button {
+    display:block; width:18px; height:18px; background-color:var(--control);
+    background-repeat:no-repeat; background-position:center; background-size:10px 10px;
+  }
+  ::-webkit-scrollbar-button:single-button:hover { background-color:var(--control-hv); }
+  ::-webkit-scrollbar-button:single-button:vertical:decrement { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1 7 L5 2 L9 7 Z' fill='%23e2a63d'/%3E%3C/svg%3E"); }
+  ::-webkit-scrollbar-button:single-button:vertical:increment { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1 3 L5 8 L9 3 Z' fill='%23e2a63d'/%3E%3C/svg%3E"); }
+  ::-webkit-scrollbar-button:single-button:horizontal:decrement { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M7 1 L2 5 L7 9 Z' fill='%23e2a63d'/%3E%3C/svg%3E"); }
+  ::-webkit-scrollbar-button:single-button:horizontal:increment { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M3 1 L8 5 L3 9 Z' fill='%23e2a63d'/%3E%3C/svg%3E"); }
+  select {
+    appearance:none; -webkit-appearance:none; -moz-appearance:none;
+    background-color:var(--control); background-image:var(--arrow);
+    background-repeat:no-repeat; background-position:right .55rem center;
+    background-size:1em 1em; border:1px solid var(--control-bd);
+    color:var(--fg); font-size:14px;
+  }
+  .reader-content { line-height:1.6; font-feature-settings:"kern" 1,"liga" 1; }
+  .reader-line { display:block; margin-bottom:1em; }
+  .reader-heading { font-weight:700; }
+  .reader-word { display:inline; padding:2px 1px; border-radius:3px; cursor:pointer; }
+  .hl-word {
+    background:var(--word-hl)!important; color:var(--word-hl-text)!important;
+    box-shadow:0 0 0 1px var(--word-hl); border-radius:4px;
+  }
+  .hl-sentence {
+    background:var(--sentence-hl); border-radius:5px;
+    box-shadow:0 0 0 3px var(--sentence-hl);
+  }
+  .hl-paragraph {
+    background:var(--para-hl); border-radius:8px; padding:4px; margin:-4px;
+  }
+  .toc-item {
+    display:block; width:100%; text-align:left; padding:8px 14px 8px 11px;
+    font-size:13px; line-height:1.4; color:var(--muted);
+    border-left:3px solid transparent; cursor:pointer;
+  }
+  .toc-active {
+    border-left-color:var(--gold); color:var(--gold); font-weight:600;
+    background:var(--control);
+  }
+  .sheet-closed { transform:translateY(100%); }
+  .sheet-open { transform:translateY(0); }
+  .drawer-closed { transform:translateX(-100%); }
+  .drawer-open { transform:translateX(0); }
+  #tts-warn { display:none; }
+  .book-card { transition:transform .2s; }
+  .book-card:active { transform:scale(.98); }
 </style>
 </head>
+
 <body class="h-[100dvh] flex flex-col overflow-hidden antialiased select-none">
 
-  <div id="tts-warn" class="px-4 py-2 text-[11px] text-center bg-red-600 text-white shrink-0">
-    Speech synthesis not available. Open in Chrome or install Google TTS.
+<div id="tts-warn" class="px-4 py-2 text-[11px] text-center bg-red-600 text-white shrink-0">
+  Speech synthesis is not available in this browser. Try Chrome or Edge.
+</div>
+
+<header class="shrink-0 flex items-center justify-between px-3 py-2 gap-2 border-b"
+        style="border-color:var(--control-bd);">
+  <div class="flex items-center gap-2.5 min-w-0">
+    <button id="library-btn" aria-label="Library"
+            class="control-btn w-10 h-10 rounded-xl flex items-center justify-center">📚</button>
+    <div class="min-w-0">
+      <h1 class="text-[15px] font-bold tracking-tight truncate">Ultra Pro Reader</h1>
+      <p id="doc-status-subtitle" class="text-[10.5px] truncate max-w-[42vw]"
+         style="color:var(--muted);">Library</p>
+    </div>
+  </div>
+  <div class="flex items-center gap-2 shrink-0">
+    <button id="link-btn" aria-label="Open web page"
+            class="control-btn w-10 h-10 rounded-xl flex items-center justify-center">🌐</button>
+    <button id="paste-btn" aria-label="Paste text"
+            class="control-btn w-10 h-10 rounded-xl flex items-center justify-center">📋</button>
+    <button id="open-btn" aria-label="Open file"
+            class="control-btn btn-accent w-10 h-10 rounded-xl flex items-center justify-center">📂</button>
+    <input type="file" id="file-input" class="hidden"
+           accept=".txt,.md,.html,.htm,.epub,.pdf,.rtf,.srt,.vtt">
+  </div>
+</header>
+
+<div class="shrink-0 flex gap-2 px-3 py-2 panel">
+  <button id="reader-view-btn" class="control-btn btn-accent rounded-lg px-3 py-2 text-xs">Reader</button>
+  <button id="website-view-btn" class="control-btn rounded-lg px-3 py-2 text-xs">Website</button>
+</div>
+
+<main id="reader-box" class="flex-1 min-h-0 overflow-y-auto px-4 py-4 overscroll-contain"
+      style="background:var(--reader);">
+  <div id="reader-output" class="reader-content text-left outline-none"
+       style="font-family:'Literata',serif;font-size:19px;color:var(--fg);"></div>
+</main>
+
+<section id="website-panel" class="hidden flex-1 min-h-0 flex-col">
+  <div class="flex gap-2 p-2 panel">
+    <input id="website-url" type="url" inputmode="url"
+           placeholder="https://example.com/chapter"
+           class="control-btn rounded-lg px-3 py-2 text-sm flex-1 min-w-0">
+    <button id="website-go-btn" class="control-btn btn-accent rounded-lg px-4 py-2 text-sm">Go</button>
+    <button id="website-read-btn" class="control-btn rounded-lg px-3 py-2 text-sm">Read page</button>
+    <button id="website-prev-btn" class="control-btn rounded-lg px-3 py-2 text-sm" title="Previous chapter">&#9664;</button>
+    <button id="website-next-btn" class="control-btn rounded-lg px-3 py-2 text-sm" title="Next chapter">&#9654;</button>
+    <button id="website-external-btn" class="control-btn rounded-lg px-3 py-2 text-sm">New tab</button>
+  </div>
+  <p id="website-message" class="px-3 py-1 text-xs" style="color:var(--muted);">
+    Enter a chapter address and tap Go to see the original page, then Read page to hear it.
+  </p>
+  <label class="px-3 pb-1 flex items-center gap-2 text-xs cursor-pointer" style="color:var(--fg);">
+    <input id="web-auto-next" type="checkbox"><span>Auto-continue to the next chapter when finished</span>
+  </label>
+  <iframe id="website-frame" title="Website view" class="flex-1 w-full border-0"
+          sandbox="allow-same-origin" referrerpolicy="no-referrer" style="background:#fff;"></iframe>
+</section>
+
+<footer class="shrink-0 panel border-t px-3 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]"
+        style="border-color:var(--control-bd);">
+  <div class="flex items-center justify-between text-[10.5px] mt-0.5 mb-1"
+       style="color:var(--muted);">
+    <span id="time-remaining-text">About 0 min left</span>
+    <span id="page-counter-text" class="font-bold text-[11px]" style="color:var(--gold);">Page 1 / 1</span>
+  </div>
+  <div class="flex items-center justify-between gap-1 mt-1.5">
+    <button id="sidebar-toggle-btn" aria-label="Chapter Index"
+            class="control-btn w-11 h-11 rounded-xl">☰</button>
+    <button id="prev-page-btn" aria-label="Previous Page"
+            class="control-btn w-11 h-11 rounded-xl">«</button>
+    <button id="bookmark-btn" aria-label="Add Bookmark"
+            class="control-btn w-11 h-11 rounded-xl">🔖</button>
+    <button id="prev-line-btn" aria-label="Previous line" title="Previous line"
+            class="control-btn w-11 h-11 rounded-xl">&#9198;&#xFE0E;</button>
+    <button id="play-btn" aria-label="Play / pause"
+            class="control-btn btn-accent w-14 h-14 rounded-full text-xl">▶</button>
+    <button id="next-line-btn" aria-label="Next line" title="Next line"
+            class="control-btn w-11 h-11 rounded-xl">&#9197;&#xFE0E;</button>
+    <button id="stop-btn" aria-label="Stop"
+            class="control-btn w-11 h-11 rounded-xl">■</button>
+    <button id="settings-btn" aria-label="Settings"
+            class="control-btn w-11 h-11 rounded-xl">⚙</button>
+    <button id="next-page-btn" aria-label="Next Page"
+            class="control-btn w-11 h-11 rounded-xl">»</button>
+  </div>
+</footer>
+
+<div id="drawer-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
+<aside id="sidebar"
+       class="fixed inset-y-0 left-0 z-50 w-72 max-w-[82vw] panel border-r flex flex-col drawer-closed transition-transform duration-200"
+       style="border-color:var(--control-bd);">
+  <div class="flex items-center justify-between px-3 py-3 border-b shrink-0"
+       style="border-color:var(--control-bd);">
+    <span id="sidebar-title" class="text-[11px] font-semibold tracking-wide">PAGES</span>
+    <button id="sidebar-close-btn" class="text-xl font-bold px-2">&times;</button>
+  </div>
+  <div class="grid grid-cols-2 gap-2 px-3 py-2 shrink-0">
+    <button id="sidebar-pages-tab" class="control-btn btn-accent rounded-lg py-2 text-xs">Pages</button>
+    <button id="sidebar-chapters-tab" class="control-btn rounded-lg py-2 text-xs">Chapters</button>
+  </div>
+  <div id="sidebar-list" class="flex-1 overflow-y-auto py-2"></div>
+</aside>
+
+<div id="sheet-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
+<div id="settings-sheet"
+     class="fixed inset-x-0 bottom-0 z-50 panel rounded-t-2xl border-t px-4 pt-2 pb-[calc(14px+env(safe-area-inset-bottom))] max-h-[85dvh] overflow-y-auto sheet-closed transition-transform duration-200 flex flex-col gap-3"
+     style="border-color:var(--control-bd);">
+  <div class="w-10 h-1 rounded-full mx-auto shrink-0" style="background:var(--track);"></div>
+
+  <label class="text-xs" style="color:var(--muted);">Voice</label>
+  <select id="voice-select" class="w-full px-3 py-2.5 pr-8 rounded-xl">
+    <option value="">Loading voices...</option>
+  </select>
+
+  <div class="flex flex-col gap-1.5">
+    <div class="flex items-center gap-3 text-xs">
+      <span class="min-w-[38px]" style="color:var(--muted);">Speed</span>
+      <input id="speed-slider" type="range" min="50" max="400" value="100" class="flex-1">
+      <span id="speed-val" class="min-w-[60px] text-right">1.00×</span>
+    </div>
+    <div class="flex flex-wrap gap-1.5">
+      <button class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate=".75">0.75×</button>
+      <button class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="1">1×</button>
+      <button class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="1.25">1.25×</button>
+      <button class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="1.5">1.5×</button>
+      <button class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="2">2×</button>
+    </div>
   </div>
 
-  <!-- Header -->
-  <header class="shrink-0 flex items-center justify-between px-3 py-2 gap-2 border-b" style="border-color:var(--control-bd);">
-    <div class="flex items-center gap-2.5 min-w-0">
-      <button id="library-btn" aria-label="Library" class="control-btn w-10 h-10 rounded-xl flex items-center justify-center">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-      </button>
-      <div class="min-w-0">
-        <h1 class="text-[15px] font-bold tracking-tight truncate" style="color:var(--fg);">Pro Reader</h1>
-        <p id="doc-status-subtitle" class="text-[10.5px] truncate max-w-[42vw]" style="color:var(--muted);">Library</p>
-      </div>
-    </div>
-    <div class="flex items-center gap-2 shrink-0">
-      <button id="link-btn" aria-label="Open web page" class="control-btn w-10 h-10 rounded-xl flex items-center justify-center">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      </button>
-      <button id="paste-btn" aria-label="Paste text" class="control-btn w-10 h-10 rounded-xl flex items-center justify-center">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
-      </button>
-      <button id="open-btn" aria-label="Open file" class="control-btn btn-accent w-10 h-10 rounded-xl flex items-center justify-center">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.6-.8L9.6 4A2 2 0 0 0 8 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
-      </button>
-      <input type="file" id="file-input" class="hidden" accept=".txt,.md,.html,.htm,.epub,.pdf,.rtf,.srt,.vtt"/>
-    </div>
-  </header>
+  <label class="text-xs" style="color:var(--muted);">Font</label>
+  <select id="font-family-select" class="w-full px-3 py-2 pr-8 rounded-xl">
+    <option value="Literata, Georgia, serif">Literata</option>
+    <option value="Inter, system-ui, sans-serif">Inter</option>
+    <option value="Georgia, serif">Georgia</option>
+    <option value="Arial, sans-serif">Arial</option>
+    <option value="'Times New Roman', serif">Times New Roman</option>
+    <option value="'Noto Nastaliq Urdu', serif">Urdu Nastaliq</option>
+    <option value="'Noto Serif SC', serif">Chinese Serif</option>
+    <option value="'Noto Sans JP', sans-serif">Japanese Sans</option>
+    <option value="Amiri, serif">Arabic Amiri</option>
+  </select>
+  <div class="flex items-center gap-3 text-xs">
+    <span style="color:var(--muted);">Size</span>
+    <input id="font-size-slider" type="range" min="12" max="42" value="19" class="flex-1">
+    <span id="font-size-val">19 px</span>
+  </div>
+  <div class="flex gap-2">
+    <input id="system-font-input" type="text" autocomplete="off" spellcheck="false"
+           placeholder="System font name (e.g. TechnicLite)"
+           class="control-btn flex-1 min-w-0 px-3 py-2 rounded-xl text-sm">
+    <button id="system-font-load-btn" type="button" class="control-btn rounded-xl px-3 py-2 text-xs whitespace-nowrap">Installed fonts</button>
+    <button id="system-font-clear-btn" type="button" class="control-btn rounded-xl px-3 py-2 text-xs">Reset</button>
+  </div>
+  <select id="system-font-select" class="w-full px-3 py-2 pr-8 rounded-xl hidden"></select>
+  <p id="system-font-note" class="text-[11px]" style="color:var(--muted);">
+    Type the exact name of any font installed on this device, or tap Installed fonts to pick from a list.
+  </p>
 
-  <!-- Reader -->
-  <main id="reader-box" class="flex-1 min-h-0 overflow-y-auto px-4 py-4 overscroll-contain" style="background:var(--reader);">
-    <div id="reader-output" class="reader-content text-left outline-none" style="font-family:'Literata',serif;font-size:19px;color:var(--fg);"></div>
-  </main>
+  <label class="text-xs" style="color:var(--muted);">Highlighting</label>
+  <select id="highlight-mode-select" class="w-full px-3 py-2.5 pr-8 rounded-xl">
+    <option value="word">Word by Word</option>
+    <option value="sentence">Entire Sentence / Line</option>
+    <option value="sentence-word" selected>Sentence + Word</option>
+    <option value="paragraph">Entire Paragraph</option>
+    <option value="paragraph-word">Paragraph + Word</option>
+  </select>
+  <label class="flex items-center gap-2 text-xs cursor-pointer" style="color:var(--fg);">
+    <input id="auto-scroll-toggle" type="checkbox" checked><span>Auto-scroll to follow the reading</span>
+  </label>
 
-  <!-- Bottom playback bar -->
-  <footer class="shrink-0 panel border-t px-3 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]" style="border-color:var(--control-bd);">
-    <div class="flex items-center justify-between text-[10.5px] mt-0.5 mb-1" style="color:var(--muted);">
-      <span id="time-remaining-text">About 8 min left</span>
-      <span id="page-counter-text" class="font-bold text-[11px]" style="color:var(--gold);">Page 1 / 1</span>
-    </div>
-    <div class="flex items-center justify-between gap-1 mt-1.5">
-      <button id="sidebar-toggle-btn" aria-label="Chapter Index" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-      </button>
-      <button id="prev-page-btn" aria-label="Previous Page" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
-      </button>
-      <button id="bookmark-btn" aria-label="Add Bookmark" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-      </button>
-      <button id="play-btn" aria-label="Play / pause" class="control-btn btn-accent w-14 h-14 rounded-full flex items-center justify-center shadow-lg"></button>
-      <button id="stop-btn" aria-label="Stop" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
-      </button>
-      <button id="settings-btn" aria-label="Settings" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-      </button>
-      <button id="next-page-btn" aria-label="Next Page" class="control-btn w-11 h-11 rounded-xl flex items-center justify-center">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-      </button>
-    </div>
-  </footer>
-
-  <!-- Chapter Index Drawer -->
-  <div id="drawer-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
-  <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 max-w-[82vw] panel border-r flex flex-col drawer-closed transition-transform duration-200" style="border-color:var(--control-bd);">
-    <div class="flex items-center justify-between px-3 py-3 border-b shrink-0" style="border-color:var(--control-bd);">
-      <span id="sidebar-title" class="text-[11px] font-semibold tracking-wide" style="color:var(--muted);">PAGES</span>
-      <button id="sidebar-close-btn" class="text-xl font-bold leading-none px-2" style="color:var(--muted);">&times;</button>
-    </div>
-    <div class="grid grid-cols-2 gap-2 px-3 py-2 shrink-0">
-      <button id="sidebar-pages-tab" class="control-btn btn-accent rounded-lg py-2 text-xs font-semibold">Pages</button>
-      <button id="sidebar-chapters-tab" class="control-btn rounded-lg py-2 text-xs font-semibold">Chapters</button>
-    </div>
-    <div id="sidebar-list" class="flex-1 overflow-y-auto py-2"></div>
-  </aside>
-
-  <!-- Settings sheet -->
-  <div id="sheet-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
-  <div id="settings-sheet" class="fixed inset-x-0 bottom-0 z-50 panel rounded-t-2xl border-t px-4 pt-2 pb-[calc(14px+env(safe-area-inset-bottom))] max-h-[85dvh] overflow-y-auto sheet-closed transition-transform duration-200 flex flex-col gap-3" style="border-color:var(--control-bd);">
-    <div class="w-10 h-1 rounded-full mx-auto shrink-0" style="background:var(--track);"></div>
-    <select id="voice-select" class="w-full px-3 py-2.5 pr-8 rounded-xl text-ellipsis overflow-hidden whitespace-nowrap">
-      <option value="">Loading voices...</option>
+  <label class="text-xs" style="color:var(--muted);">Auto-translate pages</label>
+  <div class="flex gap-2">
+    <select id="translate-lang-select" class="flex-1 px-3 py-2 pr-8 rounded-xl">
+      <option value="">Off (original language)</option>
+      <option value="af">Afrikaans</option>
+      <option value="sq">Albanian</option>
+      <option value="am">Amharic</option>
+      <option value="ar">Arabic</option>
+      <option value="hy">Armenian</option>
+      <option value="as">Assamese</option>
+      <option value="ay">Aymara</option>
+      <option value="az">Azerbaijani</option>
+      <option value="bm">Bambara</option>
+      <option value="eu">Basque</option>
+      <option value="be">Belarusian</option>
+      <option value="bn">Bengali</option>
+      <option value="bho">Bhojpuri</option>
+      <option value="bs">Bosnian</option>
+      <option value="bg">Bulgarian</option>
+      <option value="ca">Catalan</option>
+      <option value="ceb">Cebuano</option>
+      <option value="zh-CN">Chinese (Simplified)</option>
+      <option value="zh-TW">Chinese (Traditional)</option>
+      <option value="co">Corsican</option>
+      <option value="hr">Croatian</option>
+      <option value="cs">Czech</option>
+      <option value="da">Danish</option>
+      <option value="dv">Dhivehi</option>
+      <option value="doi">Dogri</option>
+      <option value="nl">Dutch</option>
+      <option value="en">English</option>
+      <option value="eo">Esperanto</option>
+      <option value="et">Estonian</option>
+      <option value="ee">Ewe</option>
+      <option value="fil">Filipino (Tagalog)</option>
+      <option value="fi">Finnish</option>
+      <option value="fr">French</option>
+      <option value="fy">Frisian</option>
+      <option value="gl">Galician</option>
+      <option value="ka">Georgian</option>
+      <option value="de">German</option>
+      <option value="el">Greek</option>
+      <option value="gn">Guarani</option>
+      <option value="gu">Gujarati</option>
+      <option value="ht">Haitian Creole</option>
+      <option value="ha">Hausa</option>
+      <option value="haw">Hawaiian</option>
+      <option value="iw">Hebrew</option>
+      <option value="hi">Hindi</option>
+      <option value="hmn">Hmong</option>
+      <option value="hu">Hungarian</option>
+      <option value="is">Icelandic</option>
+      <option value="ig">Igbo</option>
+      <option value="ilo">Ilocano</option>
+      <option value="id">Indonesian</option>
+      <option value="ga">Irish</option>
+      <option value="it">Italian</option>
+      <option value="ja">Japanese</option>
+      <option value="jw">Javanese</option>
+      <option value="kn">Kannada</option>
+      <option value="kk">Kazakh</option>
+      <option value="km">Khmer</option>
+      <option value="rw">Kinyarwanda</option>
+      <option value="gom">Konkani</option>
+      <option value="ko">Korean</option>
+      <option value="kri">Krio</option>
+      <option value="ku">Kurdish (Kurmanji)</option>
+      <option value="ckb">Kurdish (Sorani)</option>
+      <option value="ky">Kyrgyz</option>
+      <option value="lo">Lao</option>
+      <option value="la">Latin</option>
+      <option value="lv">Latvian</option>
+      <option value="ln">Lingala</option>
+      <option value="lt">Lithuanian</option>
+      <option value="lg">Luganda</option>
+      <option value="lb">Luxembourgish</option>
+      <option value="mk">Macedonian</option>
+      <option value="mai">Maithili</option>
+      <option value="mg">Malagasy</option>
+      <option value="ms">Malay</option>
+      <option value="ml">Malayalam</option>
+      <option value="mt">Maltese</option>
+      <option value="mi">Maori</option>
+      <option value="mr">Marathi</option>
+      <option value="mni-Mtei">Meiteilon (Manipuri)</option>
+      <option value="lus">Mizo</option>
+      <option value="mn">Mongolian</option>
+      <option value="my">Myanmar (Burmese)</option>
+      <option value="ne">Nepali</option>
+      <option value="no">Norwegian</option>
+      <option value="ny">Nyanja (Chichewa)</option>
+      <option value="or">Odia (Oriya)</option>
+      <option value="om">Oromo</option>
+      <option value="ps">Pashto</option>
+      <option value="fa">Persian</option>
+      <option value="pl">Polish</option>
+      <option value="pt">Portuguese</option>
+      <option value="pa">Punjabi</option>
+      <option value="qu">Quechua</option>
+      <option value="ro">Romanian</option>
+      <option value="ru">Russian</option>
+      <option value="sm">Samoan</option>
+      <option value="sa">Sanskrit</option>
+      <option value="gd">Scots Gaelic</option>
+      <option value="nso">Sepedi</option>
+      <option value="sr">Serbian</option>
+      <option value="st">Sesotho</option>
+      <option value="sn">Shona</option>
+      <option value="sd">Sindhi</option>
+      <option value="si">Sinhala</option>
+      <option value="sk">Slovak</option>
+      <option value="sl">Slovenian</option>
+      <option value="so">Somali</option>
+      <option value="es">Spanish</option>
+      <option value="su">Sundanese</option>
+      <option value="sw">Swahili</option>
+      <option value="sv">Swedish</option>
+      <option value="tg">Tajik</option>
+      <option value="ta">Tamil</option>
+      <option value="tt">Tatar</option>
+      <option value="te">Telugu</option>
+      <option value="th">Thai</option>
+      <option value="ti">Tigrinya</option>
+      <option value="ts">Tsonga</option>
+      <option value="tr">Turkish</option>
+      <option value="tk">Turkmen</option>
+      <option value="ak">Twi</option>
+      <option value="uk">Ukrainian</option>
+      <option value="ur">Urdu</option>
+      <option value="ug">Uyghur</option>
+      <option value="uz">Uzbek</option>
+      <option value="vi">Vietnamese</option>
+      <option value="cy">Welsh</option>
+      <option value="xh">Xhosa</option>
+      <option value="yi">Yiddish</option>
+      <option value="yo">Yoruba</option>
+      <option value="zu">Zulu</option>
     </select>
-    <p class="text-[10px] -mt-1" style="color:var(--muted);">These are your device’s system voices. For native Urdu (or other languages), open <b>Voice Manager</b> and follow the install steps, then pick the voice here.</p>
-
-    <div class="flex flex-col gap-1.5">
-      <div class="flex items-center gap-3 text-xs">
-        <span class="font-medium min-w-[38px]" style="color:var(--muted);">Speed</span>
-        <input id="speed-slider" type="range" min="50" max="400" step="1" value="100" class="flex-1">
-        <span id="speed-val" class="font-medium min-w-[72px] text-right" style="color:var(--fg);">1.00×</span>
-      </div>
-      <div class="flex flex-wrap gap-1.5">
-        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="0.75">0.75×</button>
-        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="1">1×</button>
-        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="1.1">1.1×</button>
-        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="1.25">1.25×</button>
-        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="1.5">1.5×</button>
-        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="1.75">1.75×</button>
-        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="2">2×</button>
-        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="2.5">2.5×</button>
-        <button type="button" class="speed-preset control-btn px-2 py-1 rounded-lg text-[10px]" data-rate="3">3×</button>
-      </div>
-    </div>
-    
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center gap-2">
-        <select id="font-family-select" class="px-3 py-2 pr-8 rounded-xl flex-1 min-w-0 text-sm">
-          <option value="Literata, Georgia, serif" selected>Literata (web)</option>
-          <option value="Inter, system-ui, sans-serif">Inter (web)</option>
-          <option value="Georgia, 'Times New Roman', Times, serif">Georgia / Times</option>
-          <option value="'Times New Roman', Times, serif">Times New Roman</option>
-          <option value="Arial, Helvetica, sans-serif">Arial</option>
-          <option value="'Segoe UI', system-ui, sans-serif">Segoe UI (Windows)</option>
-          <option value="'Helvetica Neue', Helvetica, Arial, sans-serif">Helvetica</option>
-          <option value="Verdana, Geneva, sans-serif">Verdana</option>
-          <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
-          <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
-          <option value="'Courier New', Courier, monospace">Courier New</option>
-          <option value="Consolas, 'Courier New', monospace">Consolas</option>
-          <option value="'Palatino Linotype', Palatino, serif">Palatino</option>
-          <option value="Garamond, serif">Garamond</option>
-          <option value="'Noto Nastaliq Urdu', 'Noto Nastaliq', serif">Urdu Nastaliq</option>
-          <option value="'Noto Serif SC', 'Songti SC', serif">Chinese Serif</option>
-          <option value="'Noto Sans JP', 'Hiragino Sans', sans-serif">Japanese Sans</option>
-          <option value="Amiri, 'Traditional Arabic', serif">Arabic (Amiri)</option>
-          <option value="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">System UI</option>
-        </select>
-      </div>
-      <div class="flex items-center gap-3 text-xs">
-        <span class="font-medium min-w-[38px]" style="color:var(--muted);">Size</span>
-        <input id="font-size-slider" type="range" min="12" max="42" step="1" value="19" class="flex-1">
-        <span id="font-size-val" class="font-medium min-w-[42px] text-right" style="color:var(--fg);">19 pt</span>
-      </div>
-      <input id="custom-font-input" type="text" placeholder="Or type any installed font name (e.g. Calibri, Mangal)…" class="control-btn px-3 py-2 rounded-xl text-xs w-full">
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <label class="text-xs font-medium" style="color:var(--muted);">Highlighting Mode</label>
-      <select id="highlight-mode-select" class="w-full px-3 py-2.5 pr-8 rounded-xl text-sm">
-        <option value="word">Word by Word</option>
-        <option value="sentence">Entire Sentence / Line</option>
-        <option value="sentence-word" selected>Sentence + Word (Pro)</option>
-        <option value="paragraph">Entire Paragraph</option>
-        <option value="paragraph-word">Paragraph + Word (Pro)</option>
-      </select>
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <label class="text-xs font-medium" style="color:var(--muted);">Auto-Translate Pages To</label>
-      <div class="flex gap-2">
-        <select id="translate-lang-select" class="flex-1 px-3 py-2 pr-8 rounded-xl text-sm control-btn">
-          <option value="">Off (Original Language)</option>
-          <option value="en">English</option>
-          <option value="es">Spanish</option>
-          <option value="fr">French</option>
-          <option value="zh-CN">Chinese</option>
-          <option value="ja">Japanese</option>
-          <option value="ar">Arabic</option>
-          <option value="hi">Hindi</option>
-          <option value="ur">Urdu</option>
-        </select>
-        <label class="flex items-center gap-2 text-xs cursor-pointer shrink-0" style="color:var(--fg);">
-          <input id="auto-translate-toggle" type="checkbox">
-          <span>Auto</span>
-        </label>
-      </div>
-    </div>
-
-    <div class="flex flex-wrap gap-2">
-      <button id="theme-toggle-btn" class="control-btn px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5">
-        <span id="theme-icon" class="flex"></span><span id="theme-label">Light</span>
-      </button>
-      <button id="voice-manager-btn" class="control-btn px-3 py-2 rounded-xl text-xs font-medium">Voice Manager</button>
-      <button id="pronunciations-btn" class="control-btn px-3 py-2 rounded-xl text-xs font-medium">Pronunciations</button>
-      <button id="view-bookmarks-btn" class="control-btn px-3 py-2 rounded-xl text-xs font-medium">Bookmarks</button>
-    </div>
-    <div class="text-[11px] font-medium" style="color:var(--muted);">Status: <span id="status-text">Ready</span></div>
+    <label class="flex items-center gap-2 text-xs">
+      <input id="auto-translate-toggle" type="checkbox"> Auto
+    </label>
   </div>
 
-  <!-- Library Modal -->
-  <div id="library-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] items-center justify-center p-4 hidden flex">
-    <div class="panel rounded-xl p-4 max-w-md w-full shadow-2xl flex flex-col gap-3 border max-h-[80dvh]" style="border-color:var(--control-bd);">
-      <div class="flex items-center justify-between border-b pb-2" style="border-color:var(--control-bd);">
-        <h3 class="text-base font-bold" style="color:var(--fg);">My Library</h3>
-        <button id="close-library-btn" class="text-xl font-bold" style="color:var(--muted);">&times;</button>
-      </div>
-      <div id="library-list" class="flex-1 overflow-y-auto space-y-2 min-h-[100px]">
-        <p class="text-xs text-center py-4" style="color:var(--muted);">Your saved books will appear here.</p>
-      </div>
-    </div>
+  <p class="text-[11px]" style="color:var(--muted);">
+    Reading aloud needs a voice for the chosen language. The app picks a matching installed voice when it finds one.
+  </p>
+
+  <div class="flex flex-wrap gap-2">
+    <button id="theme-toggle-btn" class="control-btn px-3 py-2 rounded-xl text-xs">
+      <span id="theme-label">Light</span>
+    </button>
+    <button id="view-bookmarks-btn" class="control-btn px-3 py-2 rounded-xl text-xs">Bookmarks</button>
   </div>
+  <div class="text-[11px]">Status: <span id="status-text">Ready</span></div>
+</div>
 
-  <!-- Bookmarks Modal -->
-  <div id="bookmarks-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] items-center justify-center p-4 hidden flex">
-    <div class="panel rounded-xl p-4 max-w-md w-full shadow-2xl flex flex-col gap-3 border max-h-[80dvh]" style="border-color:var(--control-bd);">
-      <div class="flex items-center justify-between border-b pb-2" style="border-color:var(--control-bd);">
-        <h3 class="text-base font-bold" style="color:var(--fg);">Bookmarks</h3>
-        <button id="close-bookmarks-btn" class="text-xl font-bold" style="color:var(--muted);">&times;</button>
-      </div>
-      <div id="bookmarks-list" class="flex-1 overflow-y-auto space-y-2 min-h-[100px]"></div>
+<div id="library-modal" class="fixed inset-0 bg-black/60 z-[60] items-center justify-center p-4 hidden flex">
+  <div class="panel rounded-xl p-4 max-w-md w-full flex flex-col gap-3 max-h-[80dvh]">
+    <div class="flex justify-between border-b pb-2">
+      <h3 class="font-bold">My Library</h3>
+      <button id="close-library-btn">&times;</button>
     </div>
+    <div id="library-list" class="overflow-y-auto space-y-2"></div>
   </div>
+</div>
 
-  <!-- Voice Manager Modal -->
-  <div id="voice-manager-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] items-center justify-center p-4 hidden flex">
-    <div class="panel rounded-xl p-4 max-w-md w-full shadow-2xl flex flex-col gap-3 border max-h-[85dvh]" style="border-color:var(--control-bd);">
-      <div class="flex items-center justify-between border-b pb-2 shrink-0" style="border-color:var(--control-bd);">
-        <h3 class="text-base font-bold" style="color:var(--fg);">Voice Manager</h3>
-        <button id="close-voice-manager-btn" class="text-xl font-bold" style="color:var(--muted);">&times;</button>
-      </div>
-
-      <div class="overflow-y-auto flex-1 flex flex-col gap-3 min-h-0">
-
-        <!-- System voices status -->
-        <div class="rounded-xl border p-3 space-y-2" style="border-color:var(--control-bd);background:var(--control);">
-          <div class="text-[11px] font-semibold tracking-wide" style="color:var(--gold);">SYSTEM / BROWSER VOICES (used for reading)</div>
-          <div id="voice-status-summary" class="text-xs leading-relaxed" style="color:var(--fg);">Checking installed voices…</div>
-          <div id="voice-status-list" class="text-[11px] space-y-1 max-h-28 overflow-y-auto" style="color:var(--muted);"></div>
-          <button id="refresh-voices-btn" class="control-btn px-3 py-1.5 rounded-lg text-[11px] w-full">Refresh voice list</button>
-        </div>
-
-        <!-- Chrome: Piper extension as voice provider -->
-        <div class="rounded-xl border p-3 space-y-2" style="border-color:var(--gold);background:var(--control);">
-          <div class="text-[11px] font-semibold tracking-wide" style="color:var(--gold);">CHROME — BEST WAY TO GET PIPER / URDU VOICES</div>
-          <p class="text-[11px] leading-relaxed" style="color:var(--fg);">
-            Edge already has good Urdu voices. Chrome usually does not. The easiest fix that keeps <b>this</b> interface is:
-          </p>
-          <ol class="text-[11px] leading-relaxed list-decimal pl-4 space-y-1" style="color:var(--muted);">
-            <li>Install the free extension
-              <a href="https://chromewebstore.google.com/detail/piper-text-to-speech-voic/ppnfahcipommelgaapjalhooaeeblmeg" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:underline;">Piper Text-to-Speech Voices</a>
-            </li>
-            <li>Open the extension once and download the Urdu voices you want (e.g. Fasih, Aegis)</li>
-            <li>Close the extension — you do <b>not</b> need its GUI for reading</li>
-            <li>Return here → tap <b>Refresh voice list</b> above</li>
-            <li>In Settings → Voice, select the new Piper voice and read with your own interface</li>
-          </ol>
-          <p class="text-[10px] leading-relaxed" style="color:var(--muted);">
-            The extension only registers Piper models with Chrome’s speech engine. After that, this Pro Reader can use them like any system voice. Your highlighting, speed, library and layout stay exactly as they are.
-          </p>
-        </div>
-
-        <!-- How to get native Urdu / other languages -->
-        <details class="rounded-xl border overflow-hidden" style="border-color:var(--control-bd);">
-          <summary class="px-3 py-2 text-xs font-semibold cursor-pointer select-none" style="background:var(--control);color:var(--fg);">Other options (Windows system voices, Android, etc.)</summary>
-          <div class="px-3 py-2 text-[11px] leading-relaxed space-y-3" style="color:var(--muted);">
-            <p style="color:var(--fg);">Reading uses the voices installed on your device. Download a good language pack once, then select it in Settings → Voice.</p>
-
-            <div>
-              <div class="font-semibold mb-1" style="color:var(--gold);">Windows 11 (works well in Edge)</div>
-              <ol class="list-decimal pl-4 space-y-1">
-                <li>Open <b>Settings → Time &amp; language → Language &amp; region</b></li>
-                <li>Click <b>Add a language</b> → search <b>Urdu</b> (prefer Pakistan)</li>
-                <li>Tick <b>Text-to-speech</b> and install (you can leave display language unchanged)</li>
-                <li>Optional: Settings → Time &amp; language → Speech → Manage / Add voices</li>
-                <li>Close and reopen this page, then choose the new <code>ur</code> voice in Settings</li>
-              </ol>
-            </div>
-
-            <div>
-              <div class="font-semibold mb-1" style="color:var(--gold);">Android</div>
-              <ol class="list-decimal pl-4 space-y-1">
-                <li>Install a dedicated Urdu TTS engine (recommended: <b>Rehnuma Awaz</b> from Play Store)</li>
-                <li>Open device <b>Settings → System → Languages &amp; input → Text-to-speech</b></li>
-                <li>Set the preferred engine to Rehnuma Awaz (or Google TTS with Urdu data)</li>
-                <li>Download the Urdu voice data inside that engine if asked</li>
-                <li>Return here, refresh voices, and select the Urdu voice</li>
-              </ol>
-            </div>
-
-            <div>
-              <div class="font-semibold mb-1" style="color:var(--gold);">Other languages</div>
-              <p>Same idea: install the language’s Text-to-speech pack on Windows, or a good offline engine on Android (Google TTS language data, or a language-specific app). Then pick the matching voice in this app’s Settings.</p>
-            </div>
-
-            <p class="text-[10px]">After installing, use the “Refresh voice list” button above or reopen the page so the browser sees the new voices.</p>
-          </div>
-        </details>
-
-        <!-- Piper section -->
-        <div class="border-t pt-2 space-y-2" style="border-color:var(--control-bd);">
-          <div class="text-[11px] font-semibold" style="color:var(--muted);">PIPER MODELS (this page’s own cache)</div>
-          <p class="text-[10px] leading-relaxed" style="color:var(--muted);">Optional: download models here for backup or future use. For actual reading in Chrome, prefer the <b>Piper Text-to-Speech Voices</b> extension above — it registers voices so they appear in the main Voice list of this app.</p>
-          <div class="flex gap-2">
-            <input id="piper-search" type="search" placeholder="Search language, voice or quality..." class="control-btn px-3 py-2 rounded-lg text-xs min-w-0 flex-1">
-            <button id="load-piper-catalog" class="control-btn btn-accent px-3 py-2 rounded-lg text-xs shrink-0">Load voices</button>
-          </div>
-          <div id="piper-download-status" class="text-[11px] min-h-[16px]" style="color:var(--muted);">Catalogue not loaded.</div>
-          <div id="piper-progress-wrap" class="hidden flex flex-col gap-1">
-            <div class="flex items-center justify-between text-[10px]" style="color:var(--muted);">
-              <span id="piper-progress-label">Preparing download…</span>
-              <span id="piper-progress-percent">0%</span>
-            </div>
-            <div class="w-full h-2 rounded-full overflow-hidden" style="background:var(--control-bd);">
-              <div id="piper-progress-bar" class="h-full rounded-full" style="width:0%;background:var(--gold);"></div>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span id="piper-progress-size" class="text-[10px]" style="color:var(--muted);">0 MB</span>
-              <button id="piper-cancel-download" class="control-btn rounded-lg px-2 py-1 text-[10px]">Cancel download</button>
-            </div>
-          </div>
-          <div id="piper-voice-list" class="overflow-y-auto space-y-2 min-h-[80px] max-h-40 text-sm"></div>
-          <div class="text-[11px] font-semibold pt-1" style="color:var(--muted);">DOWNLOADED ON THIS DEVICE</div>
-          <div id="piper-cached-list" class="space-y-2 text-xs"></div>
-        </div>
-
-        <button id="install-tts-btn" class="control-btn px-4 py-2 rounded-xl text-xs w-full shrink-0">Open device text-to-speech settings</button>
-      </div>
+<div id="bookmarks-modal" class="fixed inset-0 bg-black/60 z-[60] items-center justify-center p-4 hidden flex">
+  <div class="panel rounded-xl p-4 max-w-md w-full flex flex-col gap-3 max-h-[80dvh]">
+    <div class="flex justify-between border-b pb-2">
+      <h3 class="font-bold">Bookmarks</h3>
+      <button id="close-bookmarks-btn">&times;</button>
     </div>
+    <div id="bookmarks-list" class="overflow-y-auto space-y-2"></div>
   </div>
+</div>
 
-  <!-- Open Web Page modal -->
-  <div id="link-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] items-center justify-center p-4 hidden flex">
-    <div class="panel rounded-xl p-4 max-w-md w-full shadow-2xl flex flex-col gap-3 border" style="border-color:var(--control-bd);">
-      <div class="flex items-center justify-between border-b pb-2" style="border-color:var(--control-bd);">
-        <h3 class="text-base font-bold" style="color:var(--fg);">Open Web Page</h3>
-        <button id="close-link-btn" class="text-xl font-bold" style="color:var(--muted);">&times;</button>
-      </div>
-      <input id="url-input" type="url" inputmode="url" autocomplete="off" placeholder="https://example.com/chapter-1" class="control-btn px-3 py-2.5 rounded-xl text-sm w-full outline-none">
-      <button id="load-url-btn" class="control-btn btn-accent px-4 py-2.5 rounded-xl text-sm">Load page</button>
-      <p id="link-status" class="text-[11px] min-h-[14px]" style="color:var(--muted);"></p>
+<div id="link-modal" class="fixed inset-0 bg-black/60 z-[60] items-center justify-center p-4 hidden flex">
+  <div class="panel rounded-xl p-4 max-w-md w-full flex flex-col gap-3">
+    <div class="flex justify-between border-b pb-2">
+      <h3 class="font-bold">Open Web Page for Reading</h3>
+      <button id="close-link-btn">&times;</button>
     </div>
+    <input id="url-input" type="url" placeholder="https://example.com/chapter"
+           class="control-btn px-3 py-2.5 rounded-xl text-sm w-full">
+    <button id="load-url-btn" class="control-btn btn-accent px-4 py-2.5 rounded-xl text-sm">Open &amp; read</button>
+    <p id="link-status" class="text-[11px]"></p>
   </div>
-
-  <!-- Pronunciations Modal -->
-  <div id="pronunciations-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] items-center justify-center p-4 hidden flex">
-    <div class="panel rounded-xl p-4 max-w-lg w-full shadow-2xl flex flex-col gap-3 border max-h-[80dvh]" style="border-color:var(--control-bd);">
-      <div class="flex items-center justify-between border-b pb-2" style="border-color:var(--control-bd);">
-        <h3 class="text-base font-bold" style="color:var(--fg);">Custom Pronunciations</h3>
-        <button id="close-modal-btn" class="text-xl font-bold" style="color:var(--muted);">&times;</button>
-      </div>
-      <div class="flex-1 overflow-y-auto space-y-2" id="pronunciation-list"></div>
-      <button id="add-pronunciation-row" class="control-btn px-3 py-1.5 rounded-md text-xs w-max" style="color:var(--gold);">+ Add Word Rule</button>
-      <div class="flex justify-end pt-1 border-t" style="border-color:var(--control-bd);">
-        <button id="save-pronunciations-btn" class="control-btn btn-accent px-4 py-1.5 rounded-md text-xs">Save Changes</button>
-      </div>
-    </div>
-  </div>
+</div>
 
 <script>
-const POS_KEY = 'proReader.positions.v3', SET_KEY = 'proReader.settings.v3', PRON_KEY = 'proReader.pron.v2', BM_KEY = 'proReader.bookmarks.v2';
-const WORDS_PER_PAGE = 300; 
+'use strict';
 
-let appState = { 
-  rawText: "", lines: [], sentences: [], pages: [], 
-  currentPageIndex: 0, currentSentenceIndex: 0, currentWordIndex: -1,
-  isPlaying: false, isPaused: false, voices: [], selectedVoice: null,
-  speechRate: 1.0,          // 1.0 = normal; maps to SpeechSynthesisUtterance.rate
-  speedWpm: 180,            // approximate WPM used only for "time left" estimate
-  darkMode: true, customPronunciations: {}, currentUrl: '', currentBookId: null,
-  highlightMode: 'sentence-word', autoTranslate: false, translateLang: '', bookmarks: [],
-  fontSize: 19
+const POS_KEY='proReader.positions.v3';
+const SET_KEY='proReader.settings.v3';
+const BM_KEY='proReader.bookmarks.v2';
+const WORDS_PER_PAGE=300;
+
+let appState={
+  rawText:'', lines:[], sentences:[], pages:[],
+  currentPageIndex:0, currentSentenceIndex:0, currentWordIndex:-1,
+  isPlaying:false, isPaused:false, voices:[], selectedVoice:null,
+  speechRate:1, speedWpm:180, darkMode:true,
+  currentBookId:null, highlightMode:'sentence-word',
+  autoTranslate:false, translateLang:'', bookmarks:[], fontSize:19, autoScroll:true
 };
 
-try { 
-  const _p = JSON.parse(localStorage.getItem(PRON_KEY) || 'null'); if (_p) appState.customPronunciations = _p; 
-  const _b = JSON.parse(localStorage.getItem(BM_KEY) || 'null'); if (_b) appState.bookmarks = _b;
-} catch(e){}
+try {
+  appState.bookmarks=JSON.parse(localStorage.getItem(BM_KEY)||'[]');
+} catch (_) {}
 
-const $ = id => document.getElementById(id);
-const readerBox = $('reader-box'), readerOutput = $('reader-output'), playBtn = $('play-btn'),
-stopBtn = $('stop-btn'), voiceSelect = $('voice-select'), speedSlider = $('speed-slider'), speedVal = $('speed-val'),
-fontFamilySelect = $('font-family-select'),
-statusText = $('status-text'), timeRemainingText = $('time-remaining-text'),
-pageCounterText = $('page-counter-text'), pasteBtn = $('paste-btn'), openBtn = $('open-btn'),
-fileInput = $('file-input'), docStatusSubtitle = $('doc-status-subtitle'), themeToggleBtn = $('theme-toggle-btn'),
-sheet = $('settings-sheet'), linkModal = $('link-modal'), urlInput = $('url-input'), linkStatus = $('link-status'),
-highlightModeSelect = $('highlight-mode-select'), translateLangSelect = $('translate-lang-select'),
-autoTranslateToggle = $('auto-translate-toggle'), sidebar = $('sidebar'), sidebarList = $('sidebar-list');
-const fontSizeSlider = $('font-size-slider'), fontSizeVal = $('font-size-val'), customFontInput = $('custom-font-input');
+const $=id=>document.getElementById(id);
+const readerBox=$('reader-box');
+const readerOutput=$('reader-output');
+const synth=window.speechSynthesis;
+let activeUtterance=null;
 
-const synth = window.speechSynthesis;
-let activeUtterance = null;
-if(!synth) $('tts-warn').style.display = 'block';
+if (!synth) $('tts-warn').style.display='block';
 
-/* ---------- IndexedDB Library ---------- */
-const dbPromise = new Promise((resolve, reject) => {
-  const req = indexedDB.open('ProReaderLibrary', 2);
-  req.onupgradeneeded = e => {
-    const db = e.target.result;
-    if (!db.objectStoreNames.contains('books')) db.createObjectStore('books', { keyPath: 'id' });
-    if (!db.objectStoreNames.contains('piperVoices')) db.createObjectStore('piperVoices', { keyPath: 'id' });
-  };
-  req.onsuccess = e => resolve(e.target.result);
-  req.onerror = e => reject(e);
-});
-
-async function saveToLibrary(id, title, text) {
-  const db = await dbPromise;
-  const tx = db.transaction('books', 'readwrite');
-  tx.objectStore('books').put({ id, title, text, date: Date.now() });
-  return new Promise(r => { tx.oncomplete = r; });
+/* IndexedDB: opens the existing database at whatever version it already has
+   (older Pro Reader versions created it as v2), with a localStorage fallback. */
+const LIB_FALLBACK_KEY='proReader.library.fallback.v1';
+let libraryError='';
+function openLibraryDb(version){
+  return new Promise((resolve,reject)=>{
+    if(!window.indexedDB){reject(new Error('IndexedDB is unavailable'));return;}
+    let request;
+    try{request=version?indexedDB.open('ProReaderLibrary',version):indexedDB.open('ProReaderLibrary');}
+    catch(error){reject(error);return;}
+    request.onupgradeneeded=event=>{
+      const db=event.target.result;
+      if(!db.objectStoreNames.contains('books'))db.createObjectStore('books',{keyPath:'id'});
+    };
+    request.onsuccess=event=>resolve(event.target.result);
+    request.onerror=()=>reject(request.error||new Error('Could not open the library database'));
+    request.onblocked=()=>reject(new Error('Library database is blocked by another open tab'));
+  });
 }
-async function getLibrary() {
-  const db = await dbPromise;
-  const tx = db.transaction('books', 'readonly');
-  const req = tx.objectStore('books').getAll();
-  return new Promise(r => { req.onsuccess = () => r(req.result); });
+const dbPromise=(async()=>{
+  let db=await openLibraryDb();
+  if(!db.objectStoreNames.contains('books')){
+    const next=db.version+1;
+    db.close();
+    db=await openLibraryDb(next);
+  }
+  return db;
+})();
+dbPromise.catch(error=>{libraryError=error.message||String(error);});
+
+function idbRun(mode,fn){
+  return dbPromise.then(db=>new Promise((resolve,reject)=>{
+    const tx=db.transaction('books',mode);
+    let result;
+    const request=fn(tx.objectStore('books'));
+    if(request)request.onsuccess=()=>{result=request.result;};
+    tx.oncomplete=()=>resolve(result);
+    tx.onerror=()=>reject(tx.error||new Error('Library transaction failed'));
+    tx.onabort=()=>reject(tx.error||new Error('Library transaction was aborted'));
+  }));
 }
-async function deleteFromLibrary(id) {
-  const db = await dbPromise;
-  const tx = db.transaction('books', 'readwrite');
-  tx.objectStore('books').delete(id);
-  return new Promise(r => { tx.oncomplete = r; });
+function readFallbackLibrary(){
+  try{return JSON.parse(localStorage.getItem(LIB_FALLBACK_KEY)||'[]');}catch(_){return [];}
+}
+function writeFallbackLibrary(list){
+  localStorage.setItem(LIB_FALLBACK_KEY,JSON.stringify(list));
 }
 
-/* ---------- persistence ---------- */
-function hashStr(s){ let h = 5381; for(let i = 0; i < s.length; i++){ h = ((h << 5) + h + s.charCodeAt(i)) | 0; } return (h >>> 0).toString(36); }
-function savePosition(){
-  if(!appState.currentBookId) return;
+async function saveToLibrary(id,title,text,meta=null){
+  const record={id,title,text,date:Date.now(),meta};
   try{
-    const m = JSON.parse(localStorage.getItem(POS_KEY) || '{}');
-    m[appState.currentBookId] = { p: appState.currentPageIndex, s: appState.currentSentenceIndex, t: Date.now() };
-    localStorage.setItem(POS_KEY, JSON.stringify(m));
-  }catch(e){}
+    await idbRun('readwrite',store=>store.put(record));
+    return true;
+  }catch(error){
+    libraryError=error.message||String(error);
+    try{
+      const list=readFallbackLibrary().filter(book=>book.id!==id);
+      list.push(record);
+      writeFallbackLibrary(list);
+      return true;
+    }catch(_){
+      setStatus('Could not save to My Library: '+libraryError);
+      return false;
+    }
+  }
 }
-function getRec(){ try{ const m = JSON.parse(localStorage.getItem(POS_KEY) || '{}'); return m[appState.currentBookId]; }catch(e){ return null; } }
+async function getLibrary(){
+  let books=[];
+  try{books=(await idbRun('readonly',store=>store.getAll()))||[];}
+  catch(error){libraryError=error.message||String(error);}
+  const seen=new Set(books.map(book=>book.id));
+  readFallbackLibrary().forEach(book=>{if(!seen.has(book.id))books.push(book);});
+  return books;
+}
+async function deleteFromLibrary(id){
+  try{await idbRun('readwrite',store=>store.delete(id));}catch(_){}
+  try{writeFallbackLibrary(readFallbackLibrary().filter(book=>book.id!==id));}catch(_){}
+}
+
+function hashStr(text){
+  let hash=5381;
+  for(let i=0;i<text.length;i++) hash=((hash<<5)+hash+text.charCodeAt(i))|0;
+  return (hash>>>0).toString(36);
+}
+function savePosition(){
+  if(!appState.currentBookId)return;
+  try{
+    const positions=JSON.parse(localStorage.getItem(POS_KEY)||'{}');
+    positions[appState.currentBookId]={
+      p:appState.currentPageIndex,s:appState.currentSentenceIndex,t:Date.now()
+    };
+    localStorage.setItem(POS_KEY,JSON.stringify(positions));
+  }catch(_){}
+}
 function saveSettings(){
   try{
-    localStorage.setItem(SET_KEY, JSON.stringify({ 
-      rate: appState.speechRate,
-      speed: appState.speedWpm,
-      dark: appState.darkMode,
-      ff: fontFamilySelect.value,
-      fs: appState.fontSize,
-      customFont: customFontInput ? customFontInput.value : '',
-      voice: appState.selectedVoice ? appState.selectedVoice.name : null,
-      hl: appState.highlightMode,
-      tl: appState.translateLang,
-      at: appState.autoTranslate
+    localStorage.setItem(SET_KEY,JSON.stringify({
+      rate:appState.speechRate, dark:appState.darkMode,
+      font:$('font-family-select').value, sysFont:appState.systemFont||'', size:appState.fontSize,
+      voice:appState.selectedVoice?.name||null,
+      highlight:appState.highlightMode,
+      translate:appState.translateLang,
+      autoTranslate:appState.autoTranslate,
+      autoScroll:appState.autoScroll
     }));
-  }catch(e){}
+  }catch(_){}
 }
-function saveBookmarks(){ try{ localStorage.setItem(BM_KEY, JSON.stringify(appState.bookmarks)); }catch(e){} }
+function setStatus(message){ $('status-text').textContent=message; }
 
-function rateToWpm(rate) {
-  // Approximate: 1.0× ≈ 180 wpm for typical English narration
-  return Math.round(Math.max(40, Math.min(600, rate * 180)));
-}
-
-function applySpeechRate(rate, { restart = false } = {}) {
-  rate = Math.round(rate * 100) / 100; // 2 decimal places
-  rate = Math.min(4, Math.max(0.5, rate));
-  appState.speechRate = rate;
-  appState.speedWpm = rateToWpm(rate);
-  // Slider is stored as percent (50–400 → 0.50×–4.00×)
-  if (speedSlider) speedSlider.value = Math.round(rate * 100);
-  if (speedVal) speedVal.textContent = rate.toFixed(2) + '×';
+function applySpeechRate(rate,{restart=false}={}){
+  rate=Math.min(4,Math.max(.5,Math.round(rate*100)/100));
+  appState.speechRate=rate;
+  appState.speedWpm=Math.round(rate*180);
+  $('speed-slider').value=Math.round(rate*100);
+  $('speed-val').textContent=rate.toFixed(2)+'×';
   saveSettings();
-  // Live rate change while speaking: restart current sentence with new rate
-  if (restart && appState.isPlaying && !appState.isPaused) {
-    const keepIdx = appState.currentSentenceIndex;
-    const keepWord = appState.currentWordIndex;
+
+  if(restart&&appState.isPlaying&&!appState.isPaused){
+    const sentence=appState.currentSentenceIndex;
     stopSpeech();
-    appState.currentSentenceIndex = keepIdx;
-    appState.currentWordIndex = keepWord >= 0 ? keepWord : -1;
+    appState.currentSentenceIndex=sentence;
     speakCurrentSentence();
   }
 }
-
-function applyFontSize(px) {
-  px = Math.max(12, Math.min(42, Math.round(px)));
-  appState.fontSize = px;
-  readerOutput.style.fontSize = px + 'px';
-  if (fontSizeSlider) fontSizeSlider.value = px;
-  if (fontSizeVal) fontSizeVal.textContent = px + ' pt';
+function applyFontSize(size){
+  size=Math.max(12,Math.min(42,parseInt(size,10)||19));
+  appState.fontSize=size;
+  readerOutput.style.fontSize=size+'px';
+  $('font-size-slider').value=size;
+  $('font-size-val').textContent=size+' px';
   saveSettings();
 }
-
-function applyFontFamily(family) {
-  if (!family) return;
-  readerOutput.style.fontFamily = family;
-  // Try to select matching option; otherwise leave custom
-  const opts = [...fontFamilySelect.options];
-  const match = opts.find(o => o.value === family);
-  if (match) fontFamilySelect.value = family;
-  saveSettings();
+function applyTheme(dark){
+  appState.darkMode=dark;
+  document.body.classList.toggle('light-mode',!dark);
+  $('theme-label').textContent=dark?'Light':'Dark';
+  $('meta-theme').content=dark?'#1e1c19':'#f2f0eb';
 }
-
 function loadSettings(){
   try{
-    const s = JSON.parse(localStorage.getItem(SET_KEY) || 'null'); if(!s) return;
-    // Prefer new rate field; fall back from old WPM if present
-    if (typeof s.rate === 'number') {
-      applySpeechRate(s.rate);
-    } else if (typeof s.speed === 'number') {
-      // Migrate old WPM (was ~80–350, centre 181) → rate
-      applySpeechRate(Math.min(2.5, Math.max(0.5, s.speed / 180)));
+    const settings=JSON.parse(localStorage.getItem(SET_KEY)||'null');
+    if(!settings)return;
+    if(typeof settings.rate==='number')applySpeechRate(settings.rate);
+    if(typeof settings.dark==='boolean')applyTheme(settings.dark);
+    if(settings.font)$('font-family-select').value=settings.font;
+    if(settings.font)readerOutput.style.fontFamily=settings.font;
+    if(settings.sysFont)applySystemFont(settings.sysFont,{save:false});
+    if(settings.size)applyFontSize(settings.size);
+    if(settings.highlight){
+      appState.highlightMode=settings.highlight;
+      $('highlight-mode-select').value=settings.highlight;
     }
-    if(typeof s.dark === 'boolean' && s.dark !== appState.darkMode) applyTheme(s.dark);
-    if(s.ff){ applyFontFamily(s.ff); }
-    if(typeof s.fs === 'number' || (typeof s.fs === 'string' && s.fs)) {
-      applyFontSize(parseInt(s.fs, 10) || 19);
+    if(settings.translate){
+      appState.translateLang=settings.translate;
+      $('translate-lang-select').value=settings.translate;
     }
-    if (s.customFont && customFontInput) {
-      customFontInput.value = s.customFont;
-      if (s.customFont.trim()) applyFontFamily(s.customFont.trim());
+    if(typeof settings.autoScroll==='boolean'){
+      appState.autoScroll=settings.autoScroll;
+      $('auto-scroll-toggle').checked=settings.autoScroll;
     }
-    if(s.hl){ appState.highlightMode = s.hl; highlightModeSelect.value = s.hl; }
-    if(s.tl){ appState.translateLang = s.tl; translateLangSelect.value = s.tl; }
-    if(typeof s.at === 'boolean'){ appState.autoTranslate = s.at; autoTranslateToggle.checked = s.at; }
-  }catch(e){}
-}
-
-/* ---------- Pagination & Rendering ---------- */
-function buildPages() {
-  appState.pages = [];
-  let currentPage = [];
-  let wordCount = 0;
-  
-  appState.sentences.forEach((sent, idx) => {
-    currentPage.push(idx);
-    wordCount += sent.words.length;
-    if (wordCount >= WORDS_PER_PAGE) {
-      appState.pages.push(currentPage);
-      currentPage = [];
-      wordCount = 0;
+    if(typeof settings.autoTranslate==='boolean'){
+      appState.autoTranslate=settings.autoTranslate;
+      $('auto-translate-toggle').checked=settings.autoTranslate;
     }
-  });
-  if (currentPage.length > 0) appState.pages.push(currentPage);
+  }catch(_){}
 }
 
-function renderPage(pageIdx) {
-  if (pageIdx < 0 || pageIdx >= appState.pages.length) return;
-  appState.currentPageIndex = pageIdx;
-  readerOutput.innerHTML = '';
-  
-  const sentenceIndices = appState.pages[pageIdx];
-  let currentLineIdx = -1;
-  let lineDiv = null;
+/* Parsing and pagination */
+const SENT_REGEX=/[^.!?]+[.!?]+["\u201d']?|[^.!?]+$/g;
 
-  sentenceIndices.forEach(sIdx => {
-    const s = appState.sentences[sIdx];
-    if (s.lineIndex !== currentLineIdx) {
-      currentLineIdx = s.lineIndex;
-      lineDiv = document.createElement('div');
-      lineDiv.className = 'reader-line' + (appState.lines[currentLineIdx].isHeading ? ' reader-heading' : '');
-      lineDiv.dataset.line = currentLineIdx;
-      readerOutput.appendChild(lineDiv);
-    }
-    
-    const sSpan = document.createElement('span');
-    sSpan.className = 'sentence-block'; sSpan.dataset.sentenceIndex = s.index;
-    
-    const displayText = (appState.autoTranslate && s.translatedText) ? s.translatedText : s.text;
-    const words = []; const wr = /(\s*)(\S+)(\s*)/g; let mm, li = 0;
-    while((mm = wr.exec(displayText)) !== null) words.push({ localIndex: li++, word: mm[2], leadingSpace: mm[1], trailingSpace: mm[3] });
-    
-    words.forEach(w => {
-      if(w.leadingSpace) sSpan.appendChild(document.createTextNode(w.leadingSpace));
-      const wSpan = document.createElement('span');
-      wSpan.className = 'reader-word';
-      wSpan.dataset.sentenceIndex = s.index; wSpan.dataset.wordIndex = w.localIndex;
-      wSpan.textContent = w.word;
-      wSpan.addEventListener('click', e => { e.stopPropagation(); jumpToSentenceAndWord(s.index, w.localIndex); });
-      sSpan.appendChild(wSpan);
-      if(w.trailingSpace) sSpan.appendChild(document.createTextNode(w.trailingSpace));
-    });
-    lineDiv.appendChild(sSpan);
-  });
-  
-  updatePageIndicator();
-  updateHighlights();
-  updateTocActive();
-  readerBox.scrollTop = 0;
+function isLikelyHeading(line){
+  const text=line.trim();
+  if(!text||text.length>120)return false;
+  if(/^(chapter|ch\.?|part|section|book|episode|canto|act|scene)\s*[\divxlcdm0-9]+/i.test(text))return true;
+  if(/^[\divxlcdm0-9]{1,5}[\s.)\]\-–—:]+.+/.test(text)&&text.length<90)return true;
+  return text.length<=70&&!/[.!?]["\u201d']?\s*$/.test(text)&&
+    text.split(/\s+/).length<=12&&!/^[“"'(]/.test(text);
 }
-
-async function translatePage(pageIdx) {
-    if (!appState.translateLang) return;
-    const sentenceIndices = appState.pages[pageIdx];
-    for (let sIdx of sentenceIndices) {
-        const sent = appState.sentences[sIdx];
-        if (!sent.translated) {
-            try {
-                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${appState.translateLang}&dt=t&q=${encodeURIComponent(sent.text)}`;
-                const res = await fetch(url);
-                const data = await res.json();
-                sent.translatedText = data[0].map(item => item[0]).join('');
-                sent.translated = true;
-            } catch(e) { sent.translatedText = sent.text; }
-        }
-    }
-}
-
-async function goToPage(idx) {
-  if (idx < 0 || idx >= appState.pages.length) return;
-  if (appState.autoTranslate && appState.translateLang) {
-    setStatus('Translating page...');
-    await translatePage(idx);
-    setStatus('Ready');
-  }
-  renderPage(idx);
-  savePosition();
-}
-
-function updatePageIndicator() {
-  const total = appState.pages.length || 1;
-  const cur = appState.currentPageIndex + 1;
-  pageCounterText.textContent = `Page ${cur} / ${total}`;
-  let rem = 0;
-  for(let i = appState.currentPageIndex; i < appState.pages.length; i++) {
-    appState.pages[i].forEach(sIdx => rem += appState.sentences[sIdx].words.length);
-  }
-  const mins = Math.ceil(rem / Math.max(1, appState.speedWpm));
-  timeRemainingText.textContent = mins < 60 ? `About ${mins} min left` : `About ${Math.floor(mins/60)} hr ${mins%60} min left`;
-}
-
-/* ---------- Parsing ---------- */
-const SENT_REGEX = /[^.!?]+[.!?]+["\u201d"']?|[^.!?]+$/g;
-
-// Detect likely chapter / section headings (short, numbered, titled, or non-sentence-like)
-function isLikelyHeading(line) {
-  const t = line.trim();
-  if (!t || t.length > 120) return false;
-  // Explicit chapter / part / section patterns
-  if (/^(?:chapter|ch\.?|part|section|book|episode|canto|act|scene)\s*[\divxlcdm0-9]+(?:\s*[:.\-–—]\s*.*)?$/i.test(t)) return true;
-  if (/^(?:第\s*[一二三四五六七八九十百千0-9]+\s*[章节回]|第\s*\d+\s*[章节回])/i.test(t)) return true;
-  // Numbered title: "1. Title", "12 - Title", "III. Title"
-  if (/^[\divxlcdm0-9]{1,5}[\s.)\]\-–—:]+.+/i.test(t) && t.length < 90) return true;
-  // All-caps short line (common for titles)
-  if (t.length <= 60 && t === t.toUpperCase() && /[\p{L}]{3,}/u.test(t) && !/[.!?]/.test(t)) return true;
-  // Markdown-style or short title without sentence-ending punctuation
-  if (t.length <= 70 && !/[.!?]["\u201d"']?\s*$/.test(t) && !/[;:,]\s*$/.test(t) && (t.split(/\s+/).length <= 12)) {
-    // Avoid treating normal short sentences as headings if they look like dialogue or body
-    if (/^[“"'\(]/.test(t)) return false;
-    return true;
-  }
-  return false;
-}
-
-function parseTextIntoStructure(text){
-  const clean = text.replace(/\r\n/g,'\n');
-  appState.lines = []; appState.sentences = [];
-  let sIdx = 0, gWord = 0;
-  clean.split('\n').forEach(rawLine => {
-    const trimmed = rawLine.trim(); if(!trimmed) return;
-    const lineObj = { text: trimmed, isHeading: isLikelyHeading(trimmed), sentenceIndices: [] };
-    (trimmed.match(SENT_REGEX) || [trimmed]).forEach(m => {
-      const words = []; const wr = /(\s*)(\S+)(\s*)/g; let mm, li = 0;
-      while((mm = wr.exec(m)) !== null) words.push({ globalIndex: gWord++, localIndex: li++, word: mm[2], leadingSpace: mm[1], trailingSpace: mm[3] });
-      if(!words.length) return;
-      appState.sentences.push({ index: sIdx, lineIndex: appState.lines.length, text: m, words, translated: false, translatedText: '' });
-      lineObj.sentenceIndices.push(sIdx); sIdx++;
+function parseText(text){
+  appState.lines=[];
+  appState.sentences=[];
+  let index=0;
+  text.replace(/\r\n/g,'\n').split('\n').forEach(raw=>{
+    const line=raw.trim();
+    if(!line)return;
+    const lineObj={text:line,isHeading:isLikelyHeading(line),sentenceIndices:[]};
+    (line.match(SENT_REGEX)||[line]).forEach(part=>{
+      const words=(part.match(/\S+/g)||[]);
+      if(!words.length)return;
+      const sentenceIndex=appState.sentences.length;
+      appState.sentences.push({
+        index:sentenceIndex,lineIndex:appState.lines.length,
+        text:part,words,translated:false,translatedText:''
+      });
+      lineObj.sentenceIndices.push(sentenceIndex);
     });
     appState.lines.push(lineObj);
   });
   buildPages();
 }
-
-function getSpokenText(t){
-  let r = t;
-  for(const [k,v] of Object.entries(appState.customPronunciations)) if(k && v) r = r.replace(new RegExp(`\\b${k}\\b`,'gi'), v);
-  // Strip most punctuation so TTS skips it, but KEEP apostrophes (straight and curly)
-  // so possessives like "Chu Fang's" stay intact and are not read as "Fang s"
-  return r
-    .replace(/[^\p{L}\p{N}\s'’]/gu, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/* ---------- Highlights (Pro Modes) ---------- */
-function scrollToCurrentHighlight() {
-  // Prefer the active word, otherwise the sentence block
-  const wordEl = readerOutput.querySelector('.hl-word');
-  const sentEl = readerOutput.querySelector('.hl-sentence');
-  const el = wordEl || sentEl;
-  if (!el) return;
-  // Keep the spoken word roughly in the middle of the viewport while reading
-  try {
-    el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-  } catch (_) {
-    // Older browsers
-    el.scrollIntoView(true);
-  }
-}
-
-function updateHighlights(){
-  document.querySelectorAll('.hl-word, .hl-sentence, .hl-paragraph').forEach(el => {
-    el.classList.remove('hl-word', 'hl-sentence', 'hl-paragraph');
+function buildPages(){
+  appState.pages=[];
+  let page=[],count=0;
+  appState.sentences.forEach((sentence,index)=>{
+    page.push(index);
+    count+=sentence.words.length;
+    if(count>=WORDS_PER_PAGE){appState.pages.push(page);page=[];count=0;}
   });
-  if(appState.currentSentenceIndex >= 0 && appState.currentSentenceIndex < appState.sentences.length){
-    const sEl = readerOutput.querySelector(`[data-sentence-index="${appState.currentSentenceIndex}"]`);
-    if(sEl){
-      const mode = appState.highlightMode;
-      const lineEl = sEl.closest('.reader-line');
-      if(mode.includes('paragraph') && lineEl) lineEl.classList.add('hl-paragraph');
-      if(mode.includes('sentence')) sEl.classList.add('hl-sentence');
-      if(appState.currentWordIndex >= 0 && mode.includes('word')){
-        const wEl = sEl.querySelector(`[data-word-index="${appState.currentWordIndex}"]`);
-        if(wEl) wEl.classList.add('hl-word');
-      }
-      // Auto-scroll only while actively reading so the highlight stays visible
-      if (appState.isPlaying && !appState.isPaused) {
-        // Defer slightly so layout has updated after class changes
-        requestAnimationFrame(() => scrollToCurrentHighlight());
+  if(page.length)appState.pages.push(page);
+}
+
+function renderPage(pageIndex){
+  if(pageIndex<0||pageIndex>=appState.pages.length)return;
+  appState.currentPageIndex=pageIndex;
+  readerOutput.replaceChildren();
+
+  let currentLine=-1,lineElement=null;
+  for(const sentenceIndex of appState.pages[pageIndex]){
+    const sentence=appState.sentences[sentenceIndex];
+    if(sentence.lineIndex!==currentLine){
+      currentLine=sentence.lineIndex;
+      lineElement=document.createElement('div');
+      lineElement.className='reader-line'+(appState.lines[currentLine].isHeading?' reader-heading':'');
+      readerOutput.appendChild(lineElement);
+    }
+
+    const sentenceElement=document.createElement('span');
+    sentenceElement.className='sentence-block';
+    sentenceElement.dataset.sentenceIndex=sentence.index;
+    const displayText=appState.autoTranslate&&sentence.translatedText?
+      sentence.translatedText:sentence.text;
+
+    const parts=displayText.match(/\s+|\S+/g)||[];
+    let wordIndex=0;
+    for(const part of parts){
+      if(/^\s+$/.test(part)){
+        sentenceElement.appendChild(document.createTextNode(part));
+      }else{
+        const word=document.createElement('span');
+        word.className='reader-word';
+        word.dataset.sentenceIndex=sentence.index;
+        word.dataset.wordIndex=wordIndex;
+        word.textContent=part;
+        word.addEventListener('click',event=>{
+          event.stopPropagation();
+          jumpToSentenceAndWord(sentence.index,wordIndex);
+        });
+        sentenceElement.appendChild(word);
+        wordIndex++;
       }
     }
-  }
-}
-
-/* ---------- Sidebar: Pages and Chapters ---------- */
-let sidebarMode = 'pages';
-
-function setSidebarMode(mode) {
-  sidebarMode = mode;
-  $('sidebar-title').textContent = mode === 'pages' ? 'PAGES' : 'CHAPTERS';
-  $('sidebar-pages-tab').classList.toggle('btn-accent', mode === 'pages');
-  $('sidebar-chapters-tab').classList.toggle('btn-accent', mode === 'chapters');
-  renderSidebar();
-}
-
-function renderSidebar() {
-  sidebarList.innerHTML = '';
-  if (sidebarMode === 'pages') {
-    appState.pages.forEach((page, pageIdx) => {
-      const btn = document.createElement('button');
-      btn.className = 'toc-item';
-      btn.textContent = String(pageIdx + 1);
-      btn.title = `Page ${pageIdx + 1}`;
-      btn.dataset.pageIdx = pageIdx;
-      btn.addEventListener('click', () => {
-        goToPage(pageIdx);
-        closeDrawer();
-      });
-      sidebarList.appendChild(btn);
-    });
-    updateTocActive();
-    return;
+    lineElement.appendChild(sentenceElement);
   }
 
-  let chapterNumber = 0;
-  appState.lines.forEach((line, lineIdx) => {
-    if (!line.isHeading || !line.sentenceIndices.length) return;
-    chapterNumber++;
-    const btn = document.createElement('button');
-    btn.className = 'toc-item';
-    // Clean common prefixes then truncate so the drawer only shows a short title + number
-    let chapterName = line.text
-      .replace(/^\s*(?:chapter|ch\.?|part|section|book|episode)\s*[\divxlcdm0-9]+[\s:.\-–—]*/i, '')
-      .replace(/^[\divxlcdm0-9]{1,5}[\s.)\]\-–—:]+/i, '')
-      .trim() || line.text;
-    // Hard limit so long paragraphs never flood the sidebar
-    if (chapterName.length > 48) chapterName = chapterName.slice(0, 45).trim() + '…';
-    btn.textContent = `${chapterNumber}. ${chapterName}`;
-    btn.title = line.text; // full original on hover
-    btn.dataset.lineIdx = lineIdx;
-    btn.addEventListener('click', () => { jumpToToc(lineIdx); closeDrawer(); });
-    sidebarList.appendChild(btn);
-  });
-
-  if (!sidebarList.children.length) {
-    sidebarList.innerHTML = '<p class="px-3 py-2 text-[11px]" style="color:var(--faint);">No chapter headings detected.</p>';
-  }
+  updatePageIndicator();
+  readerBox.scrollTop=0;
+  lastUserScroll=0;
+  updateHighlights();
   updateTocActive();
 }
-
-function updateTocActive() {
-  if (sidebarMode === 'pages') {
-    sidebarList.querySelectorAll('.toc-item').forEach(el => {
-      el.classList.toggle('toc-active', Number(el.dataset.pageIdx) === appState.currentPageIndex);
-    });
-    return;
-  }
-  const curSent = appState.sentences[appState.currentSentenceIndex];
-  const curLineIdx = curSent ? curSent.lineIndex : -1;
-  let activeEl = null;
-  sidebarList.querySelectorAll('.toc-item').forEach(el => {
-    el.classList.remove('toc-active');
-    if (parseInt(el.dataset.lineIdx, 10) <= curLineIdx) activeEl = el;
-  });
-  if (activeEl) activeEl.classList.add('toc-active');
-}
-
-function jumpToToc(lineIdx) {
-  let targetPageIdx = 0;
-  let targetSentIdx = -1;
-  for (let p = 0; p < appState.pages.length; p++) {
-    for (const sIdx of appState.pages[p]) {
-      if (appState.sentences[sIdx].lineIndex === lineIdx) {
-        targetPageIdx = p;
-        targetSentIdx = sIdx;
-        break;
-      }
+async function translatePage(pageIndex){
+  if(!appState.translateLang)return;
+  for(const index of appState.pages[pageIndex]||[]){
+    const sentence=appState.sentences[index];
+    if(sentence.translated)continue;
+    try{
+      const url='https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl='+
+        encodeURIComponent(appState.translateLang)+'&dt=t&q='+encodeURIComponent(sentence.text);
+      const response=await fetch(url);
+      const data=await response.json();
+      sentence.translated=data[0].map(part=>part[0]).join('');
+      sentence.translatedText=sentence.translated;
+    }catch(_){
+      sentence.translatedText=sentence.text;
+      sentence.translated=true;
     }
-    if (targetSentIdx !== -1) break;
   }
-  goToPage(targetPageIdx).then(() => {
-    if (targetSentIdx !== -1) {
-      appState.currentSentenceIndex = targetSentIdx;
-      appState.currentWordIndex = -1;
-      updateHighlights();
-      updateTocActive();
-      savePosition();
-    }
-  });
 }
-$('sidebar-pages-tab').addEventListener('click', () => setSidebarMode('pages'));
-$('sidebar-chapters-tab').addEventListener('click', () => setSidebarMode('chapters'));
-function openDrawer(){ sidebar.classList.replace('drawer-closed','drawer-open'); $('drawer-backdrop').classList.remove('hidden'); }
-function closeDrawer(){ sidebar.classList.replace('drawer-open','drawer-closed'); $('drawer-backdrop').classList.add('hidden'); }
-$('sidebar-toggle-btn').addEventListener('click', openDrawer);
-$('sidebar-close-btn').addEventListener('click', closeDrawer);
-$('drawer-backdrop').addEventListener('click', closeDrawer);
-
-/* ---------- Speech ---------- */
-function speakCurrentSentence(){
-  if(!synth) return;
-  synth.cancel();
-  if(appState.currentSentenceIndex < 0 || appState.currentSentenceIndex >= appState.sentences.length){ stopSpeech(); return; }
-  
-  const currentPageSentences = appState.pages[appState.currentPageIndex];
-  if(!currentPageSentences.includes(appState.currentSentenceIndex)) {
-    let targetPage = appState.pages.findIndex(p => p.includes(appState.currentSentenceIndex));
-    if(targetPage !== -1) { goToPage(targetPage).then(() => speakCurrentSentence()); return; }
+async function goToPage(index){
+  if(index<0||index>=appState.pages.length)return;
+  if(appState.autoTranslate&&appState.translateLang){
+    setStatus('Translating page…');
+    await translatePage(index);
+    setStatus('Ready');
   }
-
-  const cur = appState.sentences[appState.currentSentenceIndex];
+  renderPage(index);
   savePosition();
-  const textToSpeak = (appState.autoTranslate && cur.translatedText) ? cur.translatedText : cur.text;
-  const spokenText = getSpokenText(textToSpeak);
-  
-  activeUtterance = new SpeechSynthesisUtterance(spokenText);
-  if(appState.selectedVoice) activeUtterance.voice = appState.selectedVoice;
-  // SpeechSynthesis rate: most engines accept ~0.5–2.0 well; some support up to ~3–4
-  activeUtterance.rate = Math.min(Math.max(appState.speechRate, 0.5), 4);
-  
-  activeUtterance.onboundary = e => {
-    if(e.charIndex == null) return;
-    const tokensBefore = (spokenText.slice(0, e.charIndex).match(/\S+/g) || []).length;
-    const idx = Math.min(tokensBefore, cur.words.length - 1);
-    if(idx !== appState.currentWordIndex){ appState.currentWordIndex = idx; updateHighlights(); }
-  };
-  
-  activeUtterance.onend = () => {
-    if(appState.isPlaying && !appState.isPaused){
-      appState.currentSentenceIndex++; appState.currentWordIndex = -1;
-      if(appState.currentSentenceIndex < appState.sentences.length) {
-        if(!appState.pages[appState.currentPageIndex].includes(appState.currentSentenceIndex)) {
-          goToPage(appState.currentPageIndex + 1).then(() => speakCurrentSentence());
-        } else {
-          speakCurrentSentence();
-        }
-      } else { stopSpeech(); setStatus('Finished'); }
-    }
-  };
-  
-  appState.isPlaying = true; appState.isPaused = false;
-  updateUIState(); setStatus('Reading aloud');
-  synth.speak(activeUtterance); updateHighlights();
+}
+function updatePageIndicator(){
+  const total=appState.pages.length||1;
+  $('page-counter-text').textContent=`Page ${appState.currentPageIndex+1} / ${total}`;
+  let words=0;
+  for(let i=appState.currentPageIndex;i<appState.pages.length;i++){
+    for(const s of appState.pages[i])words+=appState.sentences[s].words.length;
+  }
+  const minutes=Math.ceil(words/Math.max(1,appState.speedWpm));
+  $('time-remaining-text').textContent=`About ${minutes} min left`;
 }
 
-function playSpeech(){
-  if(appState.isPaused){ synth.resume(); appState.isPaused = false; appState.isPlaying = true; updateUIState(); } 
-  else { speakCurrentSentence(); }
+/* Auto-scroll: keep the sentence/word being read inside the comfortable part of the view */
+let lastUserScroll=0;
+['wheel','touchmove'].forEach(type=>
+  readerBox.addEventListener(type,()=>{lastUserScroll=Date.now();},{passive:true}));
+function autoScrollTo(element){
+  if(!appState.autoScroll||!element)return;
+  if(Date.now()-lastUserScroll<3500)return; // let the user look around without being yanked back
+  const box=readerBox.getBoundingClientRect();
+  const rect=element.getBoundingClientRect();
+  if(!box.height)return;
+  const outside=rect.top<box.top+box.height*0.1||rect.bottom>box.bottom-box.height*0.25;
+  if(!outside)return;
+  const target=readerBox.scrollTop+(rect.top-box.top)-box.height*0.3;
+  readerBox.scrollTo({top:Math.max(0,target),behavior:'smooth'});
 }
-function pauseSpeech(){ if(synth && synth.speaking){ synth.pause(); appState.isPaused = true; appState.isPlaying = false; updateUIState(); savePosition(); } }
-function stopSpeech(){ if(synth) synth.cancel(); appState.isPlaying = false; appState.isPaused = false; appState.currentWordIndex = -1; updateHighlights(); updateUIState(); setStatus('Ready'); savePosition(); }
-function jumpToSentenceAndWord(s, w = 0){ appState.currentSentenceIndex = s; appState.currentWordIndex = w; updateHighlights(); playSpeech(); }
-function setStatus(msg){ statusText.textContent = msg; }
 
-const PLAY_SVG = '<svg class="w-6 h-6 ml-0.5" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
-const PAUSE_SVG = '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="9" y1="5" x2="9" y2="19"/><line x1="15" y1="5" x2="15" y2="19"/></svg>';
-function updateUIState(){ playBtn.innerHTML = appState.isPlaying ? PAUSE_SVG : PLAY_SVG; }
-playBtn.addEventListener('click', () => { appState.isPlaying ? pauseSpeech() : playSpeech(); });
-stopBtn.addEventListener('click', stopSpeech);
+/* Highlighting */
+function updateHighlights(){
+  readerOutput.querySelectorAll('.hl-word,.hl-sentence,.hl-paragraph').forEach(el=>{
+    el.classList.remove('hl-word','hl-sentence','hl-paragraph');
+  });
+  const sentence=appState.sentences[appState.currentSentenceIndex];
+  if(!sentence)return;
+  const element=readerOutput.querySelector(
+    `[data-sentence-index="${appState.currentSentenceIndex}"]`
+  );
+  if(!element)return;
 
-/* ---------- File Loading & Library Integration ---------- */
-async function loadNewText(text, label, bookId = null){
-  stopSpeech();
-  appState.rawText = text; 
-  docStatusSubtitle.textContent = label;
-  appState.currentBookId = bookId || ('b_' + hashStr(text));
-  
-  parseTextIntoStructure(text);
-  appState.currentSentenceIndex = 0; appState.currentWordIndex = -1; appState.currentPageIndex = 0;
-  renderSidebar();
-  
-  await saveToLibrary(appState.currentBookId, label, text);
-  
-  const rec = getRec();
-  if(rec && rec.p < appState.pages.length) {
-    goToPage(rec.p).then(() => {
-      if(rec.s) { appState.currentSentenceIndex = rec.s; updateHighlights(); }
+  const mode=appState.highlightMode;
+  const line=element.closest('.reader-line');
+  if(mode.includes('paragraph')&&line)line.classList.add('hl-paragraph');
+  if(mode.includes('sentence'))element.classList.add('hl-sentence');
+
+  let target=element;
+  if(appState.currentWordIndex>=0&&mode.includes('word')){
+    const word=element.querySelector(`[data-word-index="${appState.currentWordIndex}"]`);
+    if(word){word.classList.add('hl-word');target=word;}
+  }
+  autoScrollTo(target);
+}
+function updateTocActive(){
+  const current=appState.sentences[appState.currentSentenceIndex];
+  if(!current)return;
+  let active=null;
+  $('sidebar-list').querySelectorAll('.toc-item').forEach(element=>{
+    element.classList.remove('toc-active');
+    if(parseInt(element.dataset.lineIdx,10)<=current.lineIndex)active=element;
+    if(Number(element.dataset.pageIdx)===appState.currentPageIndex)active=element;
+  });
+  if(active)active.classList.add('toc-active');
+}
+
+/* Sidebar */
+let sidebarMode='pages';
+function renderSidebar(){
+  const list=$('sidebar-list');
+  list.replaceChildren();
+  $('sidebar-title').textContent=sidebarMode==='pages'?'PAGES':'CHAPTERS';
+  $('sidebar-pages-tab').classList.toggle('btn-accent',sidebarMode==='pages');
+  $('sidebar-chapters-tab').classList.toggle('btn-accent',sidebarMode==='chapters');
+
+  if(sidebarMode==='pages'){
+    appState.pages.forEach((_,index)=>{
+      const button=document.createElement('button');
+      button.className='toc-item';
+      button.textContent=`Page ${index+1}`;
+      button.dataset.pageIdx=index;
+      button.addEventListener('click',()=>{goToPage(index);closeDrawer();});
+      list.appendChild(button);
     });
-  } else {
-    goToPage(0);
-  }
-}
-
-openBtn.addEventListener('click', () => fileInput.click());
-
-// Paste text from clipboard
-pasteBtn.addEventListener('click', async () => {
-  try {
-    let text = '';
-    if (navigator.clipboard && navigator.clipboard.readText) {
-      text = await navigator.clipboard.readText();
-    } else {
-      text = prompt('Paste your text here:') || '';
-    }
-    text = (text || '').trim();
-    if (!text) {
-      setStatus('Clipboard is empty');
-      return;
-    }
-    const label = prompt('Name for this document:', 'Pasted text') || 'Pasted text';
-    await loadNewText(text, label);
-    setStatus('Ready · ' + label);
-  } catch (err) {
-    // Fallback when clipboard permission is denied
-    const text = prompt('Paste your text here (clipboard access denied):') || '';
-    if (text.trim()) {
-      const label = prompt('Name for this document:', 'Pasted text') || 'Pasted text';
-      await loadNewText(text.trim(), label);
-    } else {
-      setStatus('Paste cancelled');
-    }
-  }
-});
-
-/* ---------- Reliable PDF / EPUB document import ---------- */
-function normalizedDocumentText(value) {
-  return String(value || '')
-    .replace(/\u0000/g, '')
-    .replace(/\r\n?/g, '\n')
-    .replace(/[ \t]+\n/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
-
-function assessExtractedText(value) {
-  const text = String(value || '').trim();
-  if (!text) return { good: false, score: 0, reason: 'empty' };
-
-  const visible = [...text].filter(ch => !/\s/.test(ch));
-  if (!visible.length) return { good: false, score: 0, reason: 'empty' };
-
-  const replacement = (text.match(/\uFFFD/g) || []).length;
-  const privateUse = (text.match(/[\uE000-\uF8FF]/g) || []).length;
-  const control = (text.match(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g) || []).length;
-  const letters = (text.match(/[\p{L}\p{N}]/gu) || []).length;
-  const odd = (text.match(/[�□■◆◇※¤§]/g) || []).length;
-  const ratio = letters / Math.max(1, visible.length);
-  const badRatio = (replacement + privateUse + control + odd) / Math.max(1, visible.length);
-  const good = text.length >= 30 && ratio > 0.35 && badRatio < 0.04;
-  return { good, score: ratio - badRatio * 3, reason: good ? 'ok' : 'suspect' };
-}
-
-function pdfPageText(items) {
-  let output = '';
-  let lastY = null;
-  for (const item of items) {
-    if (!item.str) continue;
-    const y = item.transform ? item.transform[5] : null;
-    if (lastY !== null && y !== null && Math.abs(y - lastY) > 4) output += '\n';
-    output += item.str + ' ';
-    if (y !== null) lastY = y;
-  }
-  return normalizedDocumentText(output);
-}
-
-let tesseractWorkerPromise = null;
-async function getOcrWorker() {
-  if (!window.Tesseract) {
-    await new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-      script.onload = resolve;
-      script.onerror = () => reject(new Error('Could not load the OCR engine. Check your internet connection.'));
-      document.head.appendChild(script);
-    });
-  }
-  if (!tesseractWorkerPromise) {
-    tesseractWorkerPromise = window.Tesseract.createWorker('eng', 1, {
-      logger: info => {
-        if (info && info.status === 'recognizing text' && typeof info.progress === 'number') {
-          setStatus('OCR ' + Math.round(info.progress * 100) + '%');
-        }
-      }
-    });
-  }
-  return tesseractWorkerPromise;
-}
-
-async function recognizePdfPage(pdfPage) {
-  const worker = await getOcrWorker();
-  const viewport = pdfPage.getViewport({ scale: 1.65 });
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d', { willReadFrequently: true });
-  canvas.width = Math.ceil(viewport.width);
-  canvas.height = Math.ceil(viewport.height);
-  await pdfPage.render({ canvasContext: context, viewport }).promise;
-  const result = await worker.recognize(canvas);
-  canvas.width = 0;
-  canvas.height = 0;
-  return normalizedDocumentText(result.data.text || '');
-}
-
-async function extractPdf(file) {
-  if (!window.pdfjsLib) throw new Error('PDF.js did not load. Please check your internet connection and try again.');
-  const pdfDoc = await pdfjsLib.getDocument({
-    data: new Uint8Array(await file.arrayBuffer()),
-    useSystemFonts: true,
-    isEvalSupported: false
-  }).promise;
-
-  const pageTexts = [];
-  let needsOcr = false;
-
-  for (let pageNo = 1; pageNo <= pdfDoc.numPages; pageNo++) {
-    setStatus(`Reading PDF page ${pageNo} of ${pdfDoc.numPages}...`);
-    const page = await pdfDoc.getPage(pageNo);
-    const content = await page.getTextContent({ includeMarkedContent: false });
-    let text = pdfPageText(content.items);
-    const quality = assessExtractedText(text);
-
-    // OCR only pages that appear scanned, empty, or badly decoded.
-    if (!quality.good) {
-      needsOcr = true;
-      try {
-        setStatus(`Recognizing text on PDF page ${pageNo}...`);
-        const ocrText = await recognizePdfPage(page);
-        if (assessExtractedText(ocrText).score > quality.score || !text) {
-          text = ocrText;
-        }
-      } catch (ocrError) {
-        console.warn('OCR fallback failed on page ' + pageNo, ocrError);
-        if (!text) text = `[Page ${pageNo}: no selectable text was found. OCR could not run.]`;
-      }
-    }
-    pageTexts.push(text ? `Page ${pageNo}\n${text}` : `[Page ${pageNo}: no readable text found]`);
-  }
-
-  const fullText = normalizedDocumentText(pageTexts.join('\n\n'));
-  if (!fullText || !assessExtractedText(fullText).good) {
-    throw new Error('This PDF did not produce readable text. It may be password-protected, damaged, or use an unsupported font encoding.');
-  }
-  return { text: fullText, pages: pdfDoc.numPages, usedOcr: needsOcr };
-}
-
-function xmlElementsByLocalName(xmlDoc, localName) {
-  return [...xmlDoc.getElementsByTagName('*')].filter(el => el.localName === localName);
-}
-
-function safeZipPath(basePath, relativePath) {
-  const combined = (basePath ? basePath.replace(/\/[^/]*$/, '/') : '') + relativePath;
-  const parts = [];
-  for (const part of combined.split('/')) {
-    if (!part || part === '.') continue;
-    if (part === '..') parts.pop();
-    else parts.push(part);
-  }
-  return parts.join('/');
-}
-
-async function extractEpub(file) {
-  if (!window.JSZip) throw new Error('The EPUB reader library did not load. Please check your internet connection.');
-  const zip = await JSZip.loadAsync(await file.arrayBuffer());
-  const containerEntry = zip.file('META-INF/container.xml');
-  if (!containerEntry) throw new Error('This EPUB is missing its package index and may be damaged.');
-
-  const containerXml = new DOMParser().parseFromString(await containerEntry.async('text'), 'application/xml');
-  const rootfile = xmlElementsByLocalName(containerXml, 'rootfile')[0];
-  const opfPath = rootfile && (rootfile.getAttribute('full-path') || rootfile.getAttribute('fullPath'));
-  if (!opfPath || !zip.file(opfPath)) throw new Error('Could not locate the EPUB book contents.');
-
-  const opfXml = new DOMParser().parseFromString(await zip.file(opfPath).async('text'), 'application/xml');
-  if (opfXml.querySelector('parsererror')) throw new Error('The EPUB package index is malformed.');
-
-  const manifest = new Map();
-  for (const item of xmlElementsByLocalName(opfXml, 'item')) {
-    const id = item.getAttribute('id');
-    const href = item.getAttribute('href');
-    const media = (item.getAttribute('media-type') || '').toLowerCase();
-    if (id && href && (media.includes('html') || /\.(xhtml|html|htm)$/i.test(href))) {
-      manifest.set(id, safeZipPath(opfPath, decodeURIComponent(href.split('#')[0])));
-    }
-  }
-
-  const chapters = [];
-  const spine = xmlElementsByLocalName(opfXml, 'itemref');
-  for (let i = 0; i < spine.length; i++) {
-    const idref = spine[i].getAttribute('idref');
-    const path = manifest.get(idref);
-    if (!path || !zip.file(path)) continue;
-
-    const chapterDoc = new DOMParser().parseFromString(await zip.file(path).async('text'), 'text/html');
-    chapterDoc.querySelectorAll('script,style,nav,svg, noscript').forEach(el => el.remove());
-    const body = chapterDoc.body || chapterDoc.documentElement;
-    const heading = body.querySelector('h1,h2,h3,[ epub\\:type="title" ]');
-    const title = (heading && heading.textContent.trim()) || `Chapter ${chapters.length + 1}`;
-    const text = normalizedDocumentText(body.innerText || body.textContent || '');
-    if (text) chapters.push(`${title}\n${text}`);
-  }
-
-  if (!chapters.length) throw new Error('No readable chapters were found in this EPUB. The file may be DRM-protected or damaged.');
-  const fullText = normalizedDocumentText(chapters.join('\n\n'));
-  if (!assessExtractedText(fullText).good) {
-    throw new Error('The EPUB content did not decode into readable text. It may be encrypted or use an unsupported format.');
-  }
-  return { text: fullText, chapters: chapters.length };
-}
-
-fileInput.addEventListener('change', async e => {
-  const file = e.target.files && e.target.files[0];
-  if (!file) return;
-  const ext = file.name.split('.').pop().toLowerCase();
-  docStatusSubtitle.textContent = file.name;
-  setStatus('Opening document...');
-  stopSpeech();
-
-  try {
-    if (ext === 'pdf') {
-      const result = await extractPdf(file);
-      await loadNewText(result.text, file.name);
-      setStatus(result.usedOcr ? `Ready · ${result.pages} pages · OCR used where needed` : `Ready · ${result.pages} pages`);
-    } else if (ext === 'epub') {
-      const result = await extractEpub(file);
-      await loadNewText(result.text, file.name);
-      setStatus(`Ready · ${result.chapters} chapters`);
-    } else {
-      const raw = await file.text();
-      let text = raw;
-      if (ext === 'html' || ext === 'htm') {
-        const parsed = new DOMParser().parseFromString(raw, 'text/html');
-        parsed.querySelectorAll('script,style,noscript,svg').forEach(el => el.remove());
-        text = parsed.body.innerText || parsed.body.textContent || '';
-      } else if (ext === 'rtf') {
-        text = raw
-          .replace(/\\'[0-9a-f]{2}/gi, '')
-          .replace(/\\par[d]?/gi, '\n')
-          .replace(/\\'[0-9a-f]{2}|\\[a-z]+-?\d* ?|[{}]/gi, ' ')
-          .replace(/\s+/g, ' ');
-      }
-      text = normalizedDocumentText(text);
-      if (!text || !assessExtractedText(text).good) {
-        throw new Error('This file did not contain readable text. If it is a scanned PDF, please open it as a PDF so OCR can be attempted.');
-      }
-      await loadNewText(text, file.name);
-      setStatus('Ready');
-    }
-  } catch (err) {
-    console.error('Document import failed:', err);
-    setStatus('Could not read document');
-    alert(`Could not read "${file.name}".\n\n${err.message || 'The file may be damaged or unsupported.'}`);
-  } finally {
-    fileInput.value = '';
-  }
-});
-
-/* ---------- UI Events ---------- */
-$('prev-page-btn').addEventListener('click', () => goToPage(appState.currentPageIndex - 1));
-$('next-page-btn').addEventListener('click', () => goToPage(appState.currentPageIndex + 1));
-highlightModeSelect.addEventListener('change', e => { appState.highlightMode = e.target.value; saveSettings(); updateHighlights(); });
-translateLangSelect.addEventListener('change', e => { appState.translateLang = e.target.value; saveSettings(); });
-autoTranslateToggle.addEventListener('change', async e => { 
-    appState.autoTranslate = e.target.checked; 
-    saveSettings(); 
-    if(appState.autoTranslate && appState.translateLang) {
-        setStatus('Translating current page...');
-        await translatePage(appState.currentPageIndex);
-        renderPage(appState.currentPageIndex);
-        setStatus('Ready');
-    }
-});
-// Speed: slider stores rate × 100 (50–400 → 0.50×–4.00×). Live change restarts current sentence.
-speedSlider.addEventListener('input', e => {
-  const rate = parseInt(e.target.value, 10) / 100;
-  applySpeechRate(rate, { restart: true });
-});
-document.querySelectorAll('.speed-preset').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const rate = parseFloat(btn.dataset.rate);
-    if (!isNaN(rate)) applySpeechRate(rate, { restart: true });
-  });
-});
-
-fontFamilySelect.addEventListener('change', e => {
-  if (customFontInput) customFontInput.value = '';
-  applyFontFamily(e.target.value);
-});
-if (fontSizeSlider) {
-  fontSizeSlider.addEventListener('input', e => applyFontSize(parseInt(e.target.value, 10)));
-}
-if (customFontInput) {
-  customFontInput.addEventListener('change', () => {
-    const name = customFontInput.value.trim();
-    if (name) applyFontFamily(name);
-  });
-  customFontInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const name = customFontInput.value.trim();
-      if (name) applyFontFamily(name);
-    }
-  });
-}
-
-const SUN = '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
-const MOON = '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-function applyTheme(dark){
-  appState.darkMode = dark;
-  document.body.classList.toggle('light-mode', !dark);
-  $('theme-icon').innerHTML = dark ? SUN : MOON;
-  $('theme-label').textContent = dark ? 'Light' : 'Dark';
-  $('meta-theme').setAttribute('content', dark ? '#1e1c19' : '#f2f0eb');
-}
-themeToggleBtn.addEventListener('click', () => { applyTheme(!appState.darkMode); saveSettings(); });
-
-/* ---------- Modals & Library UI ---------- */
-function openSheet(){ sheet.classList.replace('sheet-closed','sheet-open'); $('sheet-backdrop').classList.remove('hidden'); }
-function closeSheet(){ sheet.classList.replace('sheet-open','sheet-closed'); $('sheet-backdrop').classList.add('hidden'); }
-$('settings-btn').addEventListener('click', openSheet);
-$('sheet-backdrop').addEventListener('click', closeSheet);
-
-async function renderLibrary() {
-  const list = $('library-list');
-  const books = await getLibrary();
-  list.innerHTML = '';
-  if(!books.length) { list.innerHTML = '<p class="text-xs text-center py-4" style="color:var(--muted);">Your saved books will appear here.</p>'; return; }
-  books.sort((a,b) => b.date - a.date).forEach(b => {
-    const div = document.createElement('div');
-    div.className = 'book-card flex items-center justify-between p-3 rounded-lg border cursor-pointer';
-    div.style.borderColor = 'var(--control-bd)';
-    div.innerHTML = `<div class="min-w-0 flex-1"><div class="text-sm font-bold truncate" style="color:var(--fg);">${b.title}</div><div class="text-[10px]" style="color:var(--muted);">${new Date(b.date).toLocaleDateString()}</div></div><button class="text-red-400 px-2 text-lg">&times;</button>`;
-    div.querySelector('button').addEventListener('click', async (e) => { e.stopPropagation(); await deleteFromLibrary(b.id); renderLibrary(); });
-    div.addEventListener('click', () => { loadNewText(b.text, b.title, b.id); $('library-modal').classList.add('hidden'); });
-    list.appendChild(div);
-  });
-}
-$('library-btn').addEventListener('click', () => { renderLibrary(); $('library-modal').classList.remove('hidden'); });
-$('close-library-btn').addEventListener('click', () => $('library-modal').classList.add('hidden'));
-
-/* ---------- Bookmarks ---------- */
-$('bookmark-btn').addEventListener('click', () => {
-  const label = prompt("Bookmark name:", `Page ${appState.currentPageIndex + 1}`);
-  if(!label) return;
-  appState.bookmarks.push({ bookId: appState.currentBookId, page: appState.currentPageIndex, sentence: appState.currentSentenceIndex, label, date: Date.now() });
-  saveBookmarks();
-  setStatus('Bookmark saved!');
-});
-function renderBookmarks() {
-  const list = $('bookmarks-list');
-  list.innerHTML = '';
-  const currentBookmarks = appState.bookmarks.filter(b => b.bookId === appState.currentBookId);
-  if(!currentBookmarks.length) { list.innerHTML = '<p class="text-xs text-center py-4" style="color:var(--muted);">No bookmarks for this book.</p>'; return; }
-  currentBookmarks.forEach((b, i) => {
-    const div = document.createElement('div');
-    div.className = 'flex items-center justify-between p-3 rounded-lg border cursor-pointer';
-    div.style.borderColor = 'var(--control-bd)';
-    div.innerHTML = `<div class="text-sm font-bold" style="color:var(--fg);">${b.label}</div><button class="text-red-400 px-2 text-lg">&times;</button>`;
-    div.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); appState.bookmarks.splice(appState.bookmarks.indexOf(b), 1); saveBookmarks(); renderBookmarks(); });
-    div.addEventListener('click', () => { goToPage(b.page).then(() => { appState.currentSentenceIndex = b.sentence; updateHighlights(); }); $('bookmarks-modal').classList.add('hidden'); });
-    list.appendChild(div);
-  });
-}
-$('view-bookmarks-btn').addEventListener('click', () => { renderBookmarks(); $('bookmarks-modal').classList.remove('hidden'); });
-$('close-bookmarks-btn').addEventListener('click', () => $('bookmarks-modal').classList.add('hidden'));
-
-/* ---------- Piper voice catalogue and one-time browser cache ---------- */
-const PIPER_CATALOG_URL = 'https://huggingface.co/rhasspy/piper-voices/resolve/main/voices.json';
-const PIPER_BASE_URL = 'https://huggingface.co/rhasspy/piper-voices/resolve/main/';
-const PIPER_FAVOURITE_IDS = [
-  'ur_PK-aegis_female-medium',
-  'ur_PK-fasih-medium',
-  'en_US-lessac-medium'
-];
-let piperCatalog = [];
-let piperCatalogLoaded = false;
-let piperDownloadController = null;
-let piperCachedIds = new Set();
-
-function piperDbRequest(mode, action, value) {
-  return dbPromise.then(db => new Promise((resolve, reject) => {
-    const tx = db.transaction('piperVoices', mode);
-    const store = tx.objectStore('piperVoices');
-    const req = store[action](...(value === undefined ? [] : [value]));
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-    tx.onerror = () => reject(tx.error);
-  }));
-}
-
-function piperVoiceLabel(v) {
-  const lang = v.language || {};
-  const language = [lang.name_english, lang.name_native, lang.code].filter(Boolean).join(' / ') || 'Unknown language';
-  return `${language} · ${v.quality || 'standard'}`;
-}
-
-function piperProgress(show, label = 'Preparing download…', percent = 0, loaded = 0, total = 0) {
-  const wrap = $('piper-progress-wrap');
-  wrap.classList.toggle('hidden', !show);
-  $('piper-progress-label').textContent = label;
-  $('piper-progress-percent').textContent = total > 0 ? `${Math.min(100, Math.round(percent))}%` : '…';
-  $('piper-progress-bar').style.width = total > 0 ? `${Math.min(100, Math.max(0, percent))}%` : '35%';
-  $('piper-progress-size').textContent = total > 0
-    ? `${(loaded / 1048576).toFixed(1)} / ${(total / 1048576).toFixed(1)} MB`
-    : `${(loaded / 1048576).toFixed(1)} MB downloaded`;
-}
-
-function renderPiperCatalog() {
-  const list = $('piper-voice-list');
-  const query = ($('piper-search').value || '').trim().toLowerCase();
-  list.innerHTML = '';
-
-  // Sort: favourites first, then medium quality, then by language / id
-  const matches = piperCatalog
-    .filter(v => !query || piperVoiceLabel(v).toLowerCase().includes(query) || v.id.toLowerCase().includes(query))
-    .sort((a, b) => {
-      const af = PIPER_FAVOURITE_IDS.includes(a.id) ? 0 : 1;
-      const bf = PIPER_FAVOURITE_IDS.includes(b.id) ? 0 : 1;
-      if (af !== bf) return af - bf;
-      const aq = (a.quality === 'medium') ? 0 : 1;
-      const bq = (b.quality === 'medium') ? 0 : 1;
-      if (aq !== bq) return aq - bq;
-      return a.id.localeCompare(b.id);
-    });
-
-  if (!matches.length) {
-    list.innerHTML = '<p class="text-xs py-3 text-center" style="color:var(--muted);">No voices matched your search. Clear the search box or refresh the catalogue.</p>';
-    return;
-  }
-
-  // Limit initial render for performance; search still works on full list
-  const toShow = query ? matches : matches.slice(0, 80);
-  toShow.forEach(voice => {
-    const isCached = piperCachedIds.has(voice.id);
-    const isFav = PIPER_FAVOURITE_IDS.includes(voice.id);
-    const row = document.createElement('div');
-    row.className = 'rounded-lg border p-2.5 flex items-center gap-2';
-    row.style.borderColor = isFav ? 'var(--gold)' : 'var(--control-bd)';
-    const info = document.createElement('div');
-    info.className = 'min-w-0 flex-1';
-    const name = document.createElement('div');
-    name.className = 'text-xs font-semibold break-words';
-    name.style.color = 'var(--fg)';
-    name.textContent = (isFav ? '★ ' : '') + voice.id;
-    const detail = document.createElement('div');
-    detail.className = 'text-[10px] mt-1';
-    detail.style.color = 'var(--muted)';
-    detail.textContent = piperVoiceLabel(voice) + (isCached ? ' · Cached' : '');
-    info.append(name, detail);
-    const button = document.createElement('button');
-    button.className = 'control-btn rounded-lg px-3 py-2 text-[11px] shrink-0';
-    if (isCached) {
-      button.textContent = 'Cached';
-      button.disabled = true;
-    } else {
-      button.textContent = 'Download';
-      button.addEventListener('click', () => downloadPiperVoice(voice, button));
-    }
-    row.append(info, button);
-    list.appendChild(row);
-  });
-  if (!query && matches.length > 80) {
-    const more = document.createElement('p');
-    more.className = 'text-[10px] text-center py-2';
-    more.style.color = 'var(--muted)';
-    more.textContent = `Showing 80 of ${matches.length} voices. Type in the search box to find others (e.g. "arabic", "hindi", "medium").`;
-    list.appendChild(more);
-  }
-}
-
-async function loadPiperCatalog() {
-  const status = $('piper-download-status');
-  const button = $('load-piper-catalog');
-  button.disabled = true;
-  button.textContent = 'Loading…';
-  status.textContent = 'Fetching the official Piper voice catalogue…';
-  try {
-    const response = await fetch(PIPER_CATALOG_URL, { cache: 'no-cache' });
-    if (!response.ok) throw new Error(`Catalogue request failed (${response.status}).`);
-    const catalog = await response.json();
-    piperCatalog = Object.entries(catalog).filter(([id, details]) => {
-      const files = Object.keys(details.files || {});
-      return files.some(p => p.endsWith('.onnx')) && files.some(p => p.endsWith('.onnx.json'));
-    }).map(([id, details]) => ({
-      id,
-      language: details.language || {},
-      quality: details.quality || '',
-      files: Object.keys(details.files || {}).filter(p => p.endsWith('.onnx') || p.endsWith('.onnx.json'))
-    })).filter(v => v.files.length >= 2);
-    piperCatalogLoaded = true;
-    // Refresh cached set so UI can mark already-downloaded voices
-    try {
-      const cached = await piperDbRequest('readonly', 'getAll');
-      piperCachedIds = new Set((cached || []).map(v => v.id));
-    } catch (_) { piperCachedIds = new Set(); }
-    const favCount = piperCatalog.filter(v => PIPER_FAVOURITE_IDS.includes(v.id)).length;
-    status.textContent = `${piperCatalog.length} Piper voices available (${favCount} favourites). Search by language or quality, then download.`;
-    renderPiperCatalog();
-  } catch (err) {
-    status.textContent = `Could not load the Piper catalogue. Check your internet connection and try again. ${err.message}`;
-  } finally {
-    button.disabled = false;
-    button.textContent = 'Refresh list';
-  }
-}
-
-async function fetchPiperFileWithProgress(relativePath, phase, signal) {
-  const url = PIPER_BASE_URL + relativePath.split('/').map(encodeURIComponent).join('/');
-  const response = await fetch(url, { signal, cache: 'no-cache' });
-  if (!response.ok) throw new Error(`Download failed (${response.status}) for ${relativePath.split('/').pop()}.`);
-  const headerSize = Number(response.headers.get('content-length') || 0);
-  const chunks = [];
-  let loaded = 0;
-
-  if (response.body && response.body.getReader) {
-    const reader = response.body.getReader();
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-      loaded += value.byteLength;
-      const percent = headerSize ? loaded / headerSize * 100 : 0;
-      piperProgress(true, phase, percent, loaded, headerSize);
-    }
-  } else {
-    const blob = await response.blob();
-    loaded = blob.size;
-    chunks.push(blob);
-    piperProgress(true, phase, 100, loaded, loaded);
-  }
-  return new Blob(chunks, { type: 'application/octet-stream' });
-}
-
-async function downloadPiperVoice(voice, button) {
-  const status = $('piper-download-status');
-  if (piperDownloadController) piperDownloadController.abort();
-  piperDownloadController = new AbortController();
-  const signal = piperDownloadController.signal;
-  button.disabled = true;
-  button.textContent = 'Downloading…';
-  $('piper-cancel-download').disabled = false;
-  status.textContent = `Preparing ${voice.id}…`;
-  piperProgress(true, 'Starting model download…', 0, 0, 0);
-
-  try {
-    const existing = await piperDbRequest('readonly', 'get', voice.id);
-    if (existing && existing.model && existing.config) {
-      status.textContent = `${voice.id} is already cached on this device.`;
-      button.textContent = 'Cached';
-      await renderCachedPiperVoices();
-      return;
-    }
-    const modelRel = voice.files.find(p => p.endsWith('.onnx'));
-    const configRel = voice.files.find(p => p.endsWith('.onnx.json'));
-    if (!modelRel || !configRel) throw new Error('This voice does not include both a model and configuration.');
-
-    status.textContent = `Downloading ${voice.id} model. Keep this page open until it is saved.`;
-    const model = await fetchPiperFileWithProgress(modelRel, 'Downloading voice model…', signal);
-    if (!model.size) throw new Error('The downloaded model is empty. Please retry.');
-
-    status.textContent = `Model downloaded (${(model.size / 1048576).toFixed(1)} MB). Downloading voice configuration…`;
-    const config = await fetchPiperFileWithProgress(configRel, 'Downloading voice configuration…', signal);
-    if (!config.size) throw new Error('The downloaded configuration is empty. Please retry.');
-
-    piperProgress(true, 'Saving voice to browser storage…', 100, model.size + config.size, model.size + config.size);
-    await piperDbRequest('readwrite', 'put', {
-      id: voice.id,
-      language: voice.language || {},
-      quality: voice.quality || '',
-      modelName: modelRel.split('/').pop(),
-      configName: configRel.split('/').pop(),
-      model,
-      config,
-      downloadedAt: Date.now(),
-      modelBytes: model.size,
-      configBytes: config.size
-    });
-    piperCachedIds.add(voice.id);
-    status.textContent = `${voice.id} downloaded and saved in this browser's local cache.`;
-    button.textContent = 'Cached';
-    button.disabled = true;
-    await renderCachedPiperVoices();
-    renderPiperCatalog(); // refresh list so "Cached" state appears immediately
-    piperProgress(false);
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      status.textContent = `Download cancelled for ${voice.id}. No incomplete voice was saved.`;
-      button.textContent = 'Retry';
-    } else {
-      status.textContent = `Could not download ${voice.id}: ${err.message || 'Unknown error'}. Check connection/storage and retry.`;
-      button.textContent = 'Retry';
-    }
-    piperProgress(false);
-  } finally {
-    if (button.textContent !== 'Cached') button.disabled = false;
-    $('piper-cancel-download').disabled = true;
-    piperDownloadController = null;
-  }
-}
-
-$('piper-cancel-download').addEventListener('click', () => {
-  if (piperDownloadController) piperDownloadController.abort();
-});
-
-async function renderCachedPiperVoices() {
-  const box = $('piper-cached-list');
-  box.innerHTML = '';
-  try {
-    const voices = await piperDbRequest('readonly', 'getAll');
-    piperCachedIds = new Set((voices || []).map(v => v.id));
-    if (!voices || !voices.length) {
-      box.textContent = 'No Piper voices downloaded yet.';
-      box.style.color = 'var(--muted)';
-      return;
-    }
-    voices.sort((a, b) => a.id.localeCompare(b.id)).forEach(voice => {
-      const row = document.createElement('div');
-      row.className = 'flex items-center gap-2 justify-between rounded-lg p-2';
-      row.style.background = 'var(--control)';
-      const label = document.createElement('span');
-      label.className = 'min-w-0 break-all';
-      label.textContent = `${voice.id} · ${((voice.modelBytes + voice.configBytes) / 1048576).toFixed(1)} MB`;
-      const remove = document.createElement('button');
-      remove.className = 'text-red-400 px-2 py-1 shrink-0';
-      remove.textContent = 'Remove';
-      remove.addEventListener('click', async () => {
-        await piperDbRequest('readwrite', 'delete', voice.id);
-        piperCachedIds.delete(voice.id);
-        renderCachedPiperVoices();
-        if (piperCatalogLoaded) renderPiperCatalog();
+  }else{
+    appState.lines.forEach((line,index)=>{
+      if(!line.isHeading)return;
+      const button=document.createElement('button');
+      button.className='toc-item';
+      button.textContent=line.text.slice(0,55);
+      button.dataset.lineIdx=index;
+      button.addEventListener('click',()=>{
+        const sentenceIndex=appState.sentences.findIndex(s=>s.lineIndex===index);
+        const pageIndex=appState.pages.findIndex(p=>p.includes(sentenceIndex));
+        if(pageIndex>=0)goToPage(pageIndex).then(()=>{
+          appState.currentSentenceIndex=sentenceIndex;
+          updateHighlights();
+        });
+        closeDrawer();
       });
-      row.append(label, remove);
-      box.appendChild(row);
+      list.appendChild(button);
     });
-  } catch (err) {
-    box.textContent = `Could not read cached voices: ${err.message}`;
+    if(!list.children.length)list.textContent='No headings detected.';
   }
 }
+function openDrawer(){
+  $('sidebar').classList.replace('drawer-closed','drawer-open');
+  $('drawer-backdrop').classList.remove('hidden');
+}
+function closeDrawer(){
+  $('sidebar').classList.replace('drawer-open','drawer-closed');
+  $('drawer-backdrop').classList.add('hidden');
+}
+$('sidebar-toggle-btn').addEventListener('click',openDrawer);
+$('sidebar-close-btn').addEventListener('click',closeDrawer);
+$('drawer-backdrop').addEventListener('click',closeDrawer);
+$('sidebar-pages-tab').addEventListener('click',()=>{sidebarMode='pages';renderSidebar();});
+$('sidebar-chapters-tab').addEventListener('click',()=>{sidebarMode='chapters';renderSidebar();});
 
-function refreshSystemVoiceStatus() {
-  const summary = $('voice-status-summary');
-  const list = $('voice-status-list');
-  if (!summary || !list) return;
+/* Speech */
+function populateVoices(){
+  if(!synth)return;
+  appState.voices=synth.getVoices();
+  const select=$('voice-select');
+  select.replaceChildren();
+  appState.voices.forEach((voice,index)=>{
+    const option=document.createElement('option');
+    option.value=index;
+    option.textContent=`${voice.name} (${voice.lang})`;
+    select.appendChild(option);
+  });
+  if(appState.voices.length){
+    appState.selectedVoice=appState.voices[0];
+    select.value='0';
+  }else{
+    select.add(new Option('No system voices found',''));
+  }
+}
+if(synth&&synth.onvoiceschanged!==undefined)synth.onvoiceschanged=populateVoices;
 
-  const voices = (synth && synth.getVoices) ? synth.getVoices() : [];
-  list.innerHTML = '';
+function getSpokenText(text){
+  return text.replace(/[^\p{L}\p{N}\s'’]/gu,' ').replace(/\s+/g,' ').trim()
+    // CAPS words (e.g. "WHAT", "DON'T") would be spelled out letter by letter, so lowercase them.
+    // Same length, so word highlighting stays in sync. Vowel-less acronyms (FBI-style "NPC", "TV")
+    // and Roman numerals are left alone.
+    .replace(/\b[A-Z]{2,}(?:['’][A-Z]+)*\b/g,word=>
+      (/[AEIOUY]/.test(word)&&!/^[IVXLCDM]+$/.test(word))?word.toLowerCase():word);
+}
+function speakCurrentSentence(){
+  if(!synth||!appState.sentences.length)return;
+  const sentence=appState.sentences[appState.currentSentenceIndex];
+  if(!sentence){stopSpeech();setStatus('Finished');return;}
 
-  if (!voices.length) {
-    summary.innerHTML = '<span style="color:#f87171;">No system voices detected.</span> Install a language pack or TTS engine, then tap Refresh.';
+  const speechText=getSpokenText(sentence.text);
+  if(!speechText){
+    appState.currentSentenceIndex++;
+    speakCurrentSentence();
     return;
   }
 
-  // Group by language code prefix
-  const byLang = {};
-  voices.forEach(v => {
-    const code = (v.lang || 'unknown').toLowerCase();
-    const key = code.split('-')[0];
-    if (!byLang[key]) byLang[key] = [];
-    byLang[key].push(v);
-  });
+  synth.cancel();
+  activeUtterance=new SpeechSynthesisUtterance(speechText);
+  const thisUtterance=activeUtterance;
+  if(appState.selectedVoice)activeUtterance.voice=appState.selectedVoice;
+  activeUtterance.rate=appState.speechRate;
+  if(appState.selectedVoice?.lang)activeUtterance.lang=appState.selectedVoice.lang;
 
-  const urdu = byLang['ur'] || [];
-  const en = byLang['en'] || [];
-  const ar = byLang['ar'] || [];
-  const hi = byLang['hi'] || [];
-  const zh = byLang['zh'] || [];
-  const ja = byLang['ja'] || [];
+  activeUtterance.onboundary=event=>{
+    if(event.charIndex==null)return;
+    appState.currentWordIndex=(speechText.slice(0,event.charIndex).match(/\S+/g)||[]).length;
+    updateHighlights();
+  };
+  activeUtterance.onend=()=>{
+    if(thisUtterance!==activeUtterance)return;
+    if(!appState.isPlaying||appState.isPaused)return;
+    appState.currentSentenceIndex++;
+    appState.currentWordIndex=-1;
+    const nextPage=appState.pages.findIndex(page=>page.includes(appState.currentSentenceIndex));
+    if(nextPage>=0&&nextPage!==appState.currentPageIndex){
+      goToPage(nextPage).then(speakCurrentSentence);
+    }else if(appState.currentSentenceIndex<appState.sentences.length){
+      updateHighlights();
+      speakCurrentSentence();
+    }else{
+      const nextChapter=appState.web&&appState.web.next;
+      stopSpeech();
+      if(nextChapter&&webAutoNext){
+        setStatus('Chapter finished — loading next…');
+        goToWebChapter(nextChapter);
+      }else{
+        setStatus('Finished');
+      }
+    }
+  };
+  activeUtterance.onerror=event=>{
+    if(event.error==='interrupted'||event.error==='canceled')return;
+    setStatus('Speech error: '+event.error);
+  };
 
-  let html = `<b>${voices.length}</b> system voice(s) available. `;
-  if (urdu.length) {
-    html += `<span style="color:#4ade80;">Urdu: ${urdu.length} voice(s) found ✓</span> — select one in Settings → Voice.`;
-  } else {
-    html += `<span style="color:#fbbf24;">No Urdu voice found.</span> Follow the install steps below, then refresh.`;
+  appState.isPlaying=true;
+  appState.isPaused=false;
+  $('play-btn').textContent='Ⅱ';
+  setStatus('Reading aloud');
+  synth.speak(activeUtterance);
+  updateHighlights();
+}
+function playSpeech(){
+  if(!appState.sentences.length)return;
+  if(appState.isPaused){
+    synth.resume();
+    appState.isPaused=false;
+    appState.isPlaying=true;
+    $('play-btn').textContent='Ⅱ';
+  }else speakCurrentSentence();
+}
+function pauseSpeech(){
+  if(synth&&synth.speaking){
+    synth.pause();
+    appState.isPaused=true;
+    appState.isPlaying=false;
+    $('play-btn').textContent='▶';
   }
-  summary.innerHTML = html;
+}
+function stopSpeech(){
+  if(synth)synth.cancel();
+  appState.isPlaying=false;
+  appState.isPaused=false;
+  appState.currentWordIndex=-1;
+  $('play-btn').textContent='▶';
+  updateHighlights();
+  setStatus('Ready');
+  savePosition();
+}
+function jumpToSentenceAndWord(sentence,word){
+  appState.currentSentenceIndex=sentence;
+  appState.currentWordIndex=word;
+  updateHighlights();
+  playSpeech();
+}
+$('play-btn').addEventListener('click',()=>appState.isPlaying?pauseSpeech():playSpeech());
+$('stop-btn').addEventListener('click',stopSpeech);
+/* Previous / next line (sentence) */
+async function stepLine(delta){
+  if(!appState.sentences.length)return;
+  const last=appState.sentences.length-1;
+  const target=Math.max(0,Math.min(last,appState.currentSentenceIndex+delta));
+  const wasPlaying=appState.isPlaying&&!appState.isPaused;
+  if(appState.isPaused){ // drop the paused utterance; Play will start from the new line
+    if(synth)synth.cancel();
+    appState.isPaused=false;appState.isPlaying=false;
+    $('play-btn').textContent='▶';
+  }
+  appState.currentSentenceIndex=target;
+  appState.currentWordIndex=-1;
+  const page=appState.pages.findIndex(sentences=>sentences.includes(target));
+  if(page>=0&&page!==appState.currentPageIndex)await goToPage(page);
+  else updateHighlights();
+  savePosition();
+  if(wasPlaying)speakCurrentSentence();
+}
+$('prev-line-btn').addEventListener('click',()=>stepLine(-1));
+$('next-line-btn').addEventListener('click',()=>stepLine(1));
+$('prev-page-btn').addEventListener('click',()=>goToPage(appState.currentPageIndex-1));
+$('next-page-btn').addEventListener('click',()=>goToPage(appState.currentPageIndex+1));
 
-  // Show a short list of useful voices
-  const interesting = [...urdu, ...en.slice(0, 4), ...ar.slice(0, 2), ...hi.slice(0, 2), ...zh.slice(0, 2), ...ja.slice(0, 2)];
-  const seen = new Set();
-  interesting.forEach(v => {
-    const id = v.name + '|' + v.lang;
-    if (seen.has(id)) return;
-    seen.add(id);
-    const row = document.createElement('div');
-    const isUr = (v.lang || '').toLowerCase().startsWith('ur');
-    row.textContent = `${isUr ? '★ ' : ''}${v.name}  ·  ${v.lang}${v.localService ? '  (local)' : ''}`;
-    if (isUr) row.style.color = 'var(--gold)';
+/* Load document */
+async function loadNewText(text,title,bookId=null,meta=null){
+  stopSpeech();
+  appState.web=null;
+  appState.rawText=text;
+  appState.currentBookId=bookId||'b_'+hashStr(text);
+  $('doc-status-subtitle').textContent=title;
+  parseText(text);
+  appState.currentPageIndex=0;
+  appState.currentSentenceIndex=0;
+  appState.currentWordIndex=-1;
+  renderSidebar();
+  await saveToLibrary(appState.currentBookId,title,text,meta);
+
+  try{
+    const positions=JSON.parse(localStorage.getItem(POS_KEY)||'{}');
+    const position=positions[appState.currentBookId];
+    if(position&&position.p<appState.pages.length){
+      appState.currentSentenceIndex=position.s||0;
+      await goToPage(position.p);
+    }else if(appState.pages.length){
+      await goToPage(0);
+    }
+  }catch(_){
+    if(appState.pages.length)await goToPage(0);
+  }
+}
+
+$('open-btn').addEventListener('click',()=>$('file-input').click());
+$('file-input').addEventListener('change',async event=>{
+  const file=event.target.files?.[0];
+  if(!file)return;
+  try{
+    setStatus('Opening file…');
+    const ext=file.name.split('.').pop().toLowerCase();
+    let text=await file.text();
+
+    if(ext==='html'||ext==='htm'){
+      const doc=new DOMParser().parseFromString(text,'text/html');
+      doc.querySelectorAll('script,style,noscript,svg').forEach(el=>el.remove());
+      text=doc.body.innerText||doc.body.textContent||'';
+    }else if(ext==='pdf'){
+      const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+      const pages=[];
+      for(let i=1;i<=pdf.numPages;i++){
+        setStatus(`Reading PDF page ${i} of ${pdf.numPages}…`);
+        const page=await pdf.getPage(i);
+        const content=await page.getTextContent();
+        pages.push(content.items.map(item=>item.str).join(' '));
+      }
+      text=pages.join('\n\n');
+    }else if(ext==='epub'){
+      const zip=await JSZip.loadAsync(await file.arrayBuffer());
+      const container=await zip.file('META-INF/container.xml')?.async('text');
+      if(!container)throw new Error('EPUB package information was not found.');
+      const xml=new DOMParser().parseFromString(container,'application/xml');
+      const opfPath=xml.querySelector('rootfile')?.getAttribute('full-path');
+      if(!opfPath||!zip.file(opfPath))throw new Error('Could not locate EPUB contents.');
+      const opf=new DOMParser().parseFromString(await zip.file(opfPath).async('text'),'application/xml');
+      const base=opfPath.replace(/\/[^/]*$/,'/');
+      const manifest=new Map([...opf.querySelectorAll('manifest item')].map(item=>[
+        item.getAttribute('id'),base+item.getAttribute('href')
+      ]));
+      const chapters=[];
+      for(const ref of opf.querySelectorAll('spine itemref')){
+        const path=manifest.get(ref.getAttribute('idref'));
+        const entry=path&&zip.file(path);
+        if(!entry)continue;
+        const doc=new DOMParser().parseFromString(await entry.async('text'),'text/html');
+        doc.querySelectorAll('script,style,nav,svg').forEach(el=>el.remove());
+        const chapterText=doc.body.innerText||doc.body.textContent||'';
+        if(chapterText.trim())chapters.push(chapterText);
+      }
+      text=chapters.join('\n\n');
+    }
+
+    if(!text.trim())throw new Error('No readable text was found.');
+    await loadNewText(text,file.name);
+    setStatus('Ready');
+  }catch(error){
+    alert(`Could not read "${file.name}".\n\n${error.message||error}`);
+    setStatus('Could not read file');
+  }finally{
+    event.target.value='';
+  }
+});
+
+/* Paste */
+$('paste-btn').addEventListener('click',async()=>{
+  try{
+    const text=await navigator.clipboard.readText();
+    if(!text.trim()){setStatus('Clipboard is empty');return;}
+    const title=prompt('Name this document:','Pasted text')||'Pasted text';
+    await loadNewText(text,title);
+  }catch(_){
+    const text=prompt('Paste text here:')||'';
+    if(text.trim())await loadNewText(text,'Pasted text');
+  }
+});
+
+/* ---------- Web helpers: fetch any page, extract only the story text ---------- */
+const WEB_AUTO_KEY = 'proReader.webAuto.v1';
+let webAutoNext = true;
+try { webAutoNext = (localStorage.getItem(WEB_AUTO_KEY) ?? '1') === '1'; } catch (_) {}
+
+function normalizeUrl(raw) {
+  let u = (raw || '').trim();
+  if (!u) return '';
+  if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+  try { return new URL(u).href; } catch (_) { return ''; }
+}
+function absUrl(href, base) {
+  try {
+    if (!href || /^\s*(javascript:|#|mailto:)/i.test(href)) return '';
+    const u = new URL(href, base);
+    return /^https?:$/.test(u.protocol) ? u.href : '';
+  } catch (_) { return ''; }
+}
+async function fetchWithTimeout(url, opts = {}, ms = 15000) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), ms);
+  try { return await fetch(url, { ...opts, signal: ctl.signal }); }
+  finally { clearTimeout(t); }
+}
+
+// Tried in order until one returns readable text.
+const WEB_SOURCES = [
+  { name: 'direct',        build: u => u },
+  { name: 'proxy 1',       build: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) },
+  { name: 'proxy 2',       build: u => 'https://corsproxy.io/?' + encodeURIComponent(u) },
+  { name: 'proxy 3',       build: u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u) },
+  { name: 'rendered page', build: u => 'https://r.jina.ai/' + u, headers: { 'X-Return-Format': 'html' } },
+  { name: 'rendered text', build: u => 'https://r.jina.ai/' + u, markdown: true },
+];
+
+const SITE_SELECTORS = {
+  'freewebnovel.com': ['#article', 'div.txt', '.txt'],
+  'wuxiaworld.com':   ['#chapter-content', '.chapter-content', '[class*="chapter-content"]'],
+  'wtr-lab.com':      ['.chapter-body', '.chapter_body', '[class*="chapter-body"]', '[class*="chapter_body"]', '#chapter-content'],
+};
+const GENERIC_SELECTORS = [
+  '#chapter-content', '.chapter-content', '#chr-content', '.chr-c', '#chapter-body', '.chapter-body',
+  '.reading-content', '.read-content', '.novel-content', '.entry-content', '.post-content',
+  '[itemprop="articleBody"]', '#article', '.txt', 'article', '#content', '.text-left', 'main'
+];
+const JUNK_SELECTOR = [
+  'script', 'style', 'noscript', 'template', 'iframe', 'svg', 'canvas', 'form', 'button', 'select', 'input', 'textarea',
+  'nav', 'footer', 'aside', '[hidden]', '[aria-hidden="true"]', '[style*="display:none"]', '[style*="display: none"]',
+  '.ads', '.ad', '.adsbygoogle', '[class*="advert"]', '[id*="advert"]', '[class*="google"]',
+  '[class*="comment"]', '[id*="comment"]', '[class*="share"]', '[class*="social"]', '[class*="breadcrumb"]',
+  '[class*="sidebar"]', '[class*="related"]', '[class*="popup"]', '[class*="modal"]', '[class*="cookie"]'
+].join(',');
+
+const JUNK_LINE = /^(advertisement|ads?|sponsored|loading\.*|report( chapter| error)?|bookmark|share|tap to (continue|read)|click (here|to).*|prev(ious)?( chapter)?|next( chapter)?|table of contents|comments?|leave a comment|\d+ comments?|support us|join (our )?discord|(please )?(visit|read at|find (more|the latest)|read (latest|more)).*(\.com|\.net|\.org|\.io|\.me).*)$/i;
+
+function textLen(el) { return (el.textContent || '').replace(/\s+/g, ' ').trim().length; }
+
+function pickContentNode(doc, host) {
+  const sels = [...(SITE_SELECTORS[host] || []), ...GENERIC_SELECTORS];
+  for (const sel of sels) {
+    let best = null, bestLen = 0;
+    try {
+      doc.querySelectorAll(sel).forEach(el => { const l = textLen(el); if (l > bestLen) { best = el; bestLen = l; } });
+    } catch (_) {}
+    if (best && bestLen >= 250) return best;
+  }
+  // Heuristic: container with the most paragraph text
+  let best = null, bestScore = 0;
+  doc.querySelectorAll('div,section,article,main,td').forEach(el => {
+    let score = 0;
+    for (const c of el.children) if (c.tagName === 'P') score += (c.textContent || '').trim().length;
+    const brs = Array.from(el.children).filter(c => c.tagName === 'BR').length;
+    if (brs >= 5) for (const n of el.childNodes) if (n.nodeType === 3) score += n.textContent.trim().length;
+    if (score > bestScore) { best = el; bestScore = score; }
+  });
+  return (best && bestScore >= 200) ? best : doc.body;
+}
+
+function nodeToText(node) {
+  const c = node.cloneNode(true);
+  // drop link-heavy short blocks (ads / "read more" boxes)
+  c.querySelectorAll('p,div,ul,ol,li').forEach(el => {
+    const t = textLen(el);
+    if (!t || t > 220) return;
+    let linkT = 0; el.querySelectorAll('a').forEach(a => linkT += textLen(a));
+    if (linkT / t > 0.6) el.remove();
+  });
+  c.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+  c.querySelectorAll('p,div,h1,h2,h3,h4,h5,h6,li,blockquote,section,tr').forEach(el => el.append('\n\n'));
+  return (c.textContent || '');
+}
+
+function cleanLines(text, host) {
+  const hostRe = host ? new RegExp(host.replace(/\./g, '\\.'), 'i') : null;
+  const out = [];
+  for (let raw of text.replace(/\r/g, '').replace(/\u00a0/g, ' ').split('\n')) {
+    const line = raw.replace(/[ \t]+/g, ' ').trim();
+    if (!line) { if (out.length && out[out.length - 1] !== '') out.push(''); continue; }
+    if (JUNK_LINE.test(line)) continue;
+    if (hostRe && line.length < 140 && hostRe.test(line)) continue;
+    out.push(line);
+  }
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function chapterNumber(s) {
+  const m = /(?:chapter|chap|ch)[\s\-_.\/]*(\d+)/i.exec(s) || /(\d+)(?!.*\d)/.exec(s);
+  return m ? parseInt(m[1], 10) : NaN;
+}
+function guessSiblingChapter(url, dir) {
+  try {
+    const u = new URL(url);
+    const re = /((?:chapter|chap|ch)[-_\/]?)(\d+)/i;
+    let p = u.pathname;
+    if (re.test(p)) p = p.replace(re, (_, a, n) => a + Math.max(1, parseInt(n, 10) + dir));
+    else if (/(\d+)(?!.*\d)/.test(p)) p = p.replace(/(\d+)(?!.*\d)/, (n) => Math.max(1, parseInt(n, 10) + dir));
+    else return '';
+    u.pathname = p;
+    return u.href === url ? '' : u.href;
+  } catch (_) { return ''; }
+}
+
+function findChapterNav(doc, base) {
+  const cur = base.split('#')[0];
+  const anchors = Array.from(doc.querySelectorAll('a[href]'))
+    .filter(a => !/disabled/i.test(a.className || ''));
+  const find = (rel, idRe, txtRe) => {
+    const relEl = doc.querySelector(`a[rel~="${rel}"][href], link[rel~="${rel}"][href]`);
+    let u = relEl && absUrl(relEl.getAttribute('href'), base);
+    if (u && u !== cur) return u;
+    let a = anchors.find(x => idRe.test(`${x.id || ''} ${x.className || ''}`) && absUrl(x.getAttribute('href'), base) !== cur && absUrl(x.getAttribute('href'), base));
+    if (a) return absUrl(a.getAttribute('href'), base);
+    a = anchors.find(x => {
+      const t = `${(x.textContent || '').trim()} ${x.getAttribute('aria-label') || ''} ${x.title || ''}`.trim();
+      const h = absUrl(x.getAttribute('href'), base);
+      return h && h !== cur && t.length < 50 && txtRe.test(t);
+    });
+    return a ? absUrl(a.getAttribute('href'), base) : '';
+  };
+  const next = find('next', /next[-_ ]?(chap|url|ch|btn|page)|\bnext\b/i, /\bnext\b|^[\s›»→>]+$/i);
+  const prev = find('prev', /prev[-_ ]?(chap|url|ch|btn|page)|\bprev(ious)?\b/i, /\bprev(ious)?\b|^[\s‹«←<]+$/i);
+  return { next, prev };
+}
+
+function collectChapterLinks(doc, base) {
+  const seen = new Set(), list = [];
+  doc.querySelectorAll('a[href]').forEach(a => {
+    const u = absUrl(a.getAttribute('href'), base);
+    if (!u || seen.has(u)) return;
+    const t = (a.textContent || '').trim();
+    if (/chapter[-_\/]?\d+|\/ch[-_]?\d+/i.test(u) || /^(chapter|ch\.?)\s*\d+/i.test(t)) {
+      seen.add(u);
+      list.push({ url: u, n: chapterNumber(t) || chapterNumber(u) });
+    }
+  });
+  return list;
+}
+function pickFirstChapter(links) {
+  const numbered = links.filter(l => Number.isFinite(l.n));
+  if (numbered.length) return numbered.reduce((a, b) => (b.n < a.n ? b : a));
+  return links[0] || null;
+}
+
+function safeTitle(t) {
+  return (t || '').replace(/[<>"&]/g, '').replace(/\s+/g, ' ').trim().slice(0, 90);
+}
+
+function parseWebHtml(html, baseUrl) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const host = new URL(baseUrl).hostname.replace(/^www\./, '');
+  const nav = findChapterNav(doc, baseUrl);
+  const chapterLinks = collectChapterLinks(doc, baseUrl);
+  const pageTitle = (doc.querySelector('meta[property="og:title"]')?.getAttribute('content') || doc.title || '').trim();
+
+  doc.querySelectorAll(JUNK_SELECTOR).forEach(n => n.remove());
+  doc.querySelectorAll('header').forEach(h => { if (!h.closest('article,main,[id*="chapter"],[class*="chapter"]')) h.remove(); });
+
+  const node = pickContentNode(doc, host);
+  const h = node.querySelector('h1,h2,h3') || doc.querySelector('h1');
+  let title = safeTitle((h && h.textContent) || pageTitle) || host;
+  let text = cleanLines(nodeToText(node), host);
+  if (text && !text.slice(0, 200).toLowerCase().includes(title.toLowerCase().slice(0, 30))) text = title + '\n\n' + text;
+  return { title, pageTitle, text, next: nav.next, prev: nav.prev, chapterLinks };
+}
+
+function parseWebMarkdown(md, baseUrl) {
+  const host = new URL(baseUrl).hostname.replace(/^www\./, '');
+  const links = [];
+  md.replace(/\[([^\]]*)\]\((https?:[^)\s]+)[^)]*\)/g, (_, t, u) => { links.push({ t: t.trim(), url: u }); return ''; });
+  const cur = baseUrl.split('#')[0];
+  const next = (links.find(l => /\bnext\b/i.test(l.t) && l.url !== cur && l.t.length < 50) || {}).url || '';
+  const prev = (links.find(l => /\bprev(ious)?\b/i.test(l.t) && l.url !== cur && l.t.length < 50) || {}).url || '';
+  const chapterLinks = links.filter(l => /chapter[-_\/]?\d+/i.test(l.url) || /^(chapter|ch\.?)\s*\d+/i.test(l.t))
+    .map(l => ({ url: l.url, n: chapterNumber(l.t) || chapterNumber(l.url) }));
+  const title = safeTitle((/^\s*Title:\s*(.+)$/im.exec(md) || /^#{1,3}\s+(.+)$/m.exec(md) || [])[1]) || host;
+  let body = md.replace(/^\s*(Title|URL Source|Published Time|Markdown Content):.*$/gim, '')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/[*_`]{1,3}/g, '')
+    .replace(/^\s*[-*]\s+/gm, '');
+  return { title, pageTitle: title, text: cleanLines(body, host), next, prev, chapterLinks };
+}
+
+
+let webState = { url: '', parsed: null, next: '', prev: '' };
+
+function normalizeWebsiteUrl(value){
+  let url;
+  try{url=new URL(value.trim());}
+  catch(_){url=new URL('https://'+value.trim());}
+  if(!['http:','https:'].includes(url.protocol)){
+    throw new Error('Enter an HTTP or HTTPS address.');
+  }
+  return url.href;
+}
+function showReaderView(){
+  $('website-panel').classList.add('hidden');
+  $('website-panel').classList.remove('flex');
+  readerBox.classList.remove('hidden');
+  $('reader-view-btn').classList.add('btn-accent');
+  $('website-view-btn').classList.remove('btn-accent');
+}
+function showWebsiteView(){
+  readerBox.classList.add('hidden');
+  $('website-panel').classList.remove('hidden');
+  $('website-panel').classList.add('flex');
+  $('website-view-btn').classList.add('btn-accent');
+  $('reader-view-btn').classList.remove('btn-accent');
+}
+function webMsg(m){ $('website-message').textContent = m; }
+
+/* Fetch the real page HTML. All sources are tried at the same time and the first
+   good answer wins (the slow rendered-copy source only starts after 4 s). Results are cached. */
+const webCache = new Map();
+function cachePage(url, value){
+  webCache.set(url, value);
+  if (webCache.size > 8) webCache.delete(webCache.keys().next().value);
+}
+function fetchPageHtml(url, say){
+  if (webCache.has(url)) return Promise.resolve(webCache.get(url));
+  say('Fetching page…');
+  const controllers = [];
+  let finished = false;
+  const sources = WEB_SOURCES.filter(src => !src.markdown);
+  const attempt = async src => {
+    const ctl = new AbortController(); controllers.push(ctl);
+    const timer = setTimeout(() => ctl.abort(), 12000);
+    try {
+      const res = await fetch(src.build(url), { ...(src.headers ? { headers: src.headers } : {}), signal: ctl.signal });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const body = await res.text();
+      if (!/<(html|body|p|div)[\s>]/i.test(body)) throw new Error('not a web page');
+      const parsed = parseWebHtml(body, url);
+      const blocked = /just a moment|cf-browser-verification|enable javascript and cookies|attention required/i.test(body.slice(0, 4000));
+      if (blocked && parsed.text.length < 600) throw new Error('blocked by bot protection');
+      if (parsed.text.length < 200 && parsed.chapterLinks.length < 5) throw new Error('no readable text');
+      return { html: body, parsed, via: src.name };
+    } catch (e) {
+      throw new Error(`${src.name}: ${e.name === 'AbortError' ? 'timed out' : (e.message || 'failed')}`);
+    } finally { clearTimeout(timer); }
+  };
+  const runs = sources.map(src =>
+    new Promise(r => setTimeout(r, src.name === 'rendered page' ? 4000 : 0))
+      .then(() => finished ? Promise.reject(new Error(src.name + ': skipped')) : attempt(src))
+  );
+  return Promise.any(runs).then(result => {
+    finished = true;
+    controllers.forEach(c => { try { c.abort(); } catch (_) {} });
+    cachePage(url, result);
+    return result;
+  }, aggregate => {
+    finished = true;
+    const msgs = (aggregate.errors || []).map(e => e.message).filter(m => !/skipped/.test(m));
+    throw new Error(msgs.join('; ') || 'all sources failed');
+  });
+}
+
+/* Warm the cache with the next chapter so auto-continue is instant. */
+function prefetchNextChapter(){
+  const next = webState.next;
+  if (!next || webCache.has(next)) return;
+  setTimeout(() => { fetchPageHtml(next, () => {}).catch(() => {}); }, 800);
+}
+
+/* Show the fetched page inside the app (scripts removed, links routed back through the app). */
+function renderOriginal(html, url){
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.querySelectorAll('script,iframe,object,embed,noscript,meta[http-equiv],base,link[rel~="preload"],link[rel~="modulepreload"]').forEach(n => n.remove());
+  doc.querySelectorAll('*').forEach(el => { for (const a of Array.from(el.attributes)) if (/^on/i.test(a.name)) el.removeAttribute(a.name); });
+  doc.querySelectorAll('img').forEach(img => {
+    const lazy = img.getAttribute('data-src') || img.getAttribute('data-lazy-src') || img.getAttribute('data-original');
+    if (lazy) img.setAttribute('src', lazy);
+    img.setAttribute('loading', 'lazy');
+    img.setAttribute('decoding', 'async');
+  });
+  const head = doc.head || doc.documentElement.insertBefore(doc.createElement('head'), doc.body);
+  const base = doc.createElement('base'); base.href = url; head.prepend(base);
+  const ref = doc.createElement('meta'); ref.name = 'referrer'; ref.content = 'no-referrer'; head.prepend(ref);
+  const frame = $('website-frame');
+  frame.onload = () => {
+    try {
+      const d = frame.contentDocument;
+      d.addEventListener('click', e => {
+        const a = e.target.closest && e.target.closest('a[href]');
+        if (!a) return;
+        const h = a.getAttribute('href') || '';
+        if (h.startsWith('#')) return;
+        e.preventDefault();
+        const u = absUrl(h, url);
+        if (u) openOriginalWebsite(u);
+      });
+    } catch (_) { /* link routing unavailable; Read page still works */ }
+  };
+  frame.srcdoc = '<!DOCTYPE html>' + doc.documentElement.outerHTML;
+}
+
+async function openOriginalWebsite(override, opts = {}){
+  let url;
+  try { url = normalizeWebsiteUrl(override || $('website-url').value); }
+  catch (error) { webMsg(error.message); return false; }
+  $('website-url').value = url;
+  if (!opts.stayInReader) showWebsiteView();
+  try {
+    const { html, parsed } = await fetchPageHtml(url, webMsg);
+    webState = {
+      url, parsed,
+      next: parsed.next || guessSiblingChapter(url, +1),
+      prev: parsed.prev || guessSiblingChapter(url, -1)
+    };
+    renderOriginal(html, url);
+    $('doc-status-subtitle').textContent = new URL(url).hostname;
+    webMsg('Original page shown. Tap Read page to hear it read aloud.');
+    prefetchNextChapter();
+    return true;
+  } catch (e) {
+    webState = { url, parsed: null, next: '', prev: '' };
+    webMsg(`Could not load that page (${e.message}). The site may block automated readers. Try New tab, or copy its text and use the clipboard button.`);
+    return false;
+  }
+}
+
+async function readWebPage(opts = {}){
+  const p = webState.parsed;
+  if (!p) { webMsg('Load a page first with Go.'); return; }
+  if (p.text.length < 700 && p.chapterLinks.length >= 5 && !opts.fromIndex) {
+    const first = pickFirstChapter(p.chapterLinks);
+    if (first) {
+      webMsg('Novel index detected — opening the first chapter…');
+      if (await openOriginalWebsite(first.url, opts)) return readWebPage({ ...opts, fromIndex: true });
+      return;
+    }
+  }
+  const { next, prev } = webState;
+  await loadNewText(p.text, p.title, null, buildWebMeta(p, webState.url, next, prev));
+  appState.web = { next, prev };
+  showReaderView();
+  setStatus('Ready · ' + p.title);
+  setTimeout(() => { if (!appState.isPlaying) playSpeech(); }, 350);
+}
+
+async function goToWebChapter(url){
+  if (await openOriginalWebsite(url, { stayInReader: true })) await readWebPage({ stayInReader: true });
+  else setStatus('Could not open the next chapter');
+}
+
+$('reader-view-btn').addEventListener('click', showReaderView);
+$('website-view-btn').addEventListener('click', showWebsiteView);
+$('website-go-btn').addEventListener('click', () => openOriginalWebsite());
+$('website-url').addEventListener('keydown', e => { if (e.key === 'Enter') openOriginalWebsite(); });
+$('website-read-btn').addEventListener('click', () => readWebPage());
+$('website-prev-btn').addEventListener('click', () => { if (webState.prev) openOriginalWebsite(webState.prev); else webMsg('No previous chapter found.'); });
+$('website-next-btn').addEventListener('click', () => { if (webState.next) openOriginalWebsite(webState.next); else webMsg('No next chapter found.'); });
+$('website-external-btn').addEventListener('click', () => {
+  try { window.open(normalizeWebsiteUrl($('website-url').value), '_blank', 'noopener,noreferrer'); }
+  catch (error) { webMsg(error.message); }
+});
+$('web-auto-next').checked = webAutoNext;
+$('web-auto-next').addEventListener('change', e => {
+  webAutoNext = e.target.checked;
+  try { localStorage.setItem(WEB_AUTO_KEY, webAutoNext ? '1' : '0'); } catch (_) {}
+});
+
+/* Open Web Page modal: fetch, extract and read in one step */
+$('link-btn').addEventListener('click', () => {
+  $('link-status').textContent = '';
+  $('link-modal').classList.remove('hidden');
+});
+$('close-link-btn').addEventListener('click', () => $('link-modal').classList.add('hidden'));
+$('load-url-btn').addEventListener('click', async () => {
+  let url;
+  try { url = normalizeWebsiteUrl($('url-input').value); }
+  catch (error) { $('link-status').textContent = error.message; return; }
+  $('link-status').textContent = 'Fetching page…';
+  if (await openOriginalWebsite(url, { stayInReader: true })) {
+    $('link-modal').classList.add('hidden');
+    await readWebPage();
+    return;
+  }
+  try { // last resort: rendered text-only copy
+    const res = await fetchWithTimeout('https://r.jina.ai/' + url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const r = parseWebMarkdown(await res.text(), url);
+    if (r.text.length < 200) throw new Error('no readable text');
+    const nx = r.next || guessSiblingChapter(url, +1), pv = r.prev || guessSiblingChapter(url, -1);
+    await loadNewText(r.text, r.title, null, buildWebMeta(r, url, nx, pv));
+    appState.web = { next: nx, prev: pv };
+    $('link-modal').classList.add('hidden');
+    showReaderView();
+  } catch (e) {
+    $('link-status').textContent = 'Could not extract page: ' + e.message + '. Try copying the text and using the clipboard button.';
+  }
+});
+$('url-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('load-url-btn').click(); });
+
+$('auto-scroll-toggle').addEventListener('change',event=>{
+  appState.autoScroll=event.target.checked;
+  saveSettings();
+});
+
+/* Settings */
+$('speed-slider').addEventListener('input',event=>{
+  applySpeechRate(parseInt(event.target.value,10)/100,{restart:true});
+});
+document.querySelectorAll('.speed-preset').forEach(button=>{
+  button.addEventListener('click',()=>applySpeechRate(parseFloat(button.dataset.rate),{restart:true}));
+});
+$('voice-select').addEventListener('change',event=>{
+  appState.selectedVoice=appState.voices[parseInt(event.target.value,10)]||null;
+  saveSettings();
+});
+$('font-family-select').addEventListener('change',event=>{
+  appState.systemFont='';
+  $('system-font-input').value='';
+  readerOutput.style.fontFamily=event.target.value;
+  saveSettings();
+});
+
+/* System-installed fonts */
+function applySystemFont(name,{save=true}={}){
+  name=(name||'').replace(/['"<>;{}\\]/g,'').trim();
+  appState.systemFont=name;
+  $('system-font-input').value=name;
+  readerOutput.style.fontFamily=name
+    ?`'${name}', Literata, Georgia, serif`
+    :$('font-family-select').value;
+  if(save)saveSettings();
+}
+$('system-font-input').addEventListener('change',event=>{
+  applySystemFont(event.target.value);
+  $('system-font-note').textContent=appState.systemFont
+    ?'Using "'+appState.systemFont+'". If the text looks unchanged, check the spelling of the font name.'
+    :'Using the font chosen above.';
+});
+$('system-font-input').addEventListener('keydown',event=>{if(event.key==='Enter')event.target.blur();});
+$('system-font-clear-btn').addEventListener('click',()=>{
+  applySystemFont('');
+  $('system-font-select').value='';
+  $('system-font-note').textContent='Back to the font chosen above.';
+});
+$('system-font-load-btn').addEventListener('click',async()=>{
+  const note=$('system-font-note'),select=$('system-font-select');
+  if(!('queryLocalFonts' in window)){
+    note.textContent='This browser cannot list installed fonts. Type the exact font name above instead; it works for any font installed on this device.';
+    return;
+  }
+  try{
+    note.textContent='Reading installed fonts…';
+    const fonts=await window.queryLocalFonts();
+    const names=[...new Set(fonts.map(font=>font.family))].sort((a,b)=>a.localeCompare(b));
+    if(!names.length)throw new Error('none found');
+    select.replaceChildren(new Option('Choose an installed font ('+names.length+')',''));
+    names.forEach(name=>select.appendChild(new Option(name,name)));
+    select.value=appState.systemFont&&names.includes(appState.systemFont)?appState.systemFont:'';
+    select.classList.remove('hidden');
+    note.textContent=names.length+' installed fonts found.';
+  }catch(error){
+    note.textContent='Could not read installed fonts ('+(error.message||error.name)+'). Allow font access when asked, or type the font name above.';
+  }
+});
+$('system-font-select').addEventListener('change',event=>{
+  if(event.target.value)applySystemFont(event.target.value);
+});
+$('font-size-slider').addEventListener('input',event=>applyFontSize(event.target.value));
+$('highlight-mode-select').addEventListener('change',event=>{
+  appState.highlightMode=event.target.value;
+  saveSettings();
+  updateHighlights();
+});
+/* Pick an installed voice that matches the translation language */
+function voiceMatchesLang(voice,code){
+  const map={iw:['he'],jw:['jv'],no:['nb','no','nn'],fil:['fil','tl'],ckb:['ckb','ku'],ku:['ku'],gom:['kok','hi'],'mni-Mtei':['mni'],ny:['ny'],or:['or']};
+  const lang=(voice.lang||'').toLowerCase().replace('_','-');
+  if(code==='zh-CN')return /^zh(-cn|-hans)?$/.test(lang)||lang.startsWith('zh-cn');
+  if(code==='zh-TW')return lang.startsWith('zh-tw')||lang.startsWith('zh-hk')||lang.startsWith('zh-hant');
+  return (map[code]||[code.toLowerCase()]).some(base=>lang===base||lang.startsWith(base+'-'));
+}
+function syncVoiceToTranslation(){
+  if(!appState.autoTranslate||!appState.translateLang)return;
+  const code=appState.translateLang;
+  if(appState.selectedVoice&&voiceMatchesLang(appState.selectedVoice,code))return;
+  const index=appState.voices.findIndex(voice=>voiceMatchesLang(voice,code));
+  if(index>=0){
+    appState.selectedVoice=appState.voices[index];
+    $('voice-select').value=String(index);
+    setStatus('Voice switched to '+appState.selectedVoice.name);
+    saveSettings();
+  }else{
+    const name=$('translate-lang-select').selectedOptions[0]?.textContent||code;
+    setStatus('No installed voice for '+name+'. Install one in your device settings to hear it.');
+  }
+}
+$('translate-lang-select').addEventListener('change',event=>{
+  appState.translateLang=event.target.value;
+  saveSettings();
+  syncVoiceToTranslation();
+});
+$('auto-translate-toggle').addEventListener('change',async event=>{
+  appState.autoTranslate=event.target.checked;
+  saveSettings();
+  syncVoiceToTranslation();
+  if(appState.autoTranslate&&appState.translateLang&&appState.pages.length){
+    await translatePage(appState.currentPageIndex);
+    renderPage(appState.currentPageIndex);
+  }
+});
+$('theme-toggle-btn').addEventListener('click',()=>{
+  applyTheme(!appState.darkMode);
+  saveSettings();
+});
+$('settings-btn').addEventListener('click',()=>{
+  $('settings-sheet').classList.replace('sheet-closed','sheet-open');
+  $('sheet-backdrop').classList.remove('hidden');
+});
+$('sheet-backdrop').addEventListener('click',()=>{
+  $('settings-sheet').classList.replace('sheet-open','sheet-closed');
+  $('sheet-backdrop').classList.add('hidden');
+});
+
+
+/* ---------- Library metadata: novel name + chapter number/title ---------- */
+function humanizeSlug(s){
+  s=decodeURIComponent(s||'').replace(/\.(html?|php)$/i,'').replace(/[-_+]+/g,' ').trim();
+  s=s.replace(/\s+novel$/i,'').replace(/\s+(all )?chapters?$/i,'');
+  return s.replace(/\b([a-z])/g,c=>c.toUpperCase());
+}
+function novelNameFromUrl(url){
+  try{
+    const segs=new URL(url).pathname.split('/').filter(Boolean);
+    const ci=segs.findIndex(s=>/chapter|^ch[-_]?\d+/i.test(s));
+    const candidates=[];
+    if(ci>0){candidates.push(segs[ci-1]);if(ci>1)candidates.push(segs[ci-2]);}
+    const ni=segs.findIndex(s=>/^(novel|novels|book|books|series|read)$/i.test(s));
+    if(ni>=0&&segs[ni+1])candidates.push(segs[ni+1]);
+    const pick=candidates.find(s=>s&&!/^\d+$/.test(s)&&!/^(en|novel|novels|book|books|series|read)$/i.test(s));
+    return pick?humanizeSlug(pick):'';
+  }catch(_){return '';}
+}
+function chapterNumberFromText(s){
+  const m=/chapter[\s\-_.\/:]*(\d+)|\bchap[\s\-_.]*(\d+)|\bch[\s\-_.]*(\d+)/i.exec(s||'');
+  return m?parseInt(m[1]||m[2]||m[3],10):null;
+}
+function buildWebMeta(parsed,url,next,prev){
+  let novel=novelNameFromUrl(url);
+  if(!novel&&parsed.pageTitle){
+    const host=new URL(url).hostname.replace(/^www\./,'').split('.')[0].toLowerCase();
+    const part=parsed.pageTitle.split(/\s[-–—|:·]\s/).map(s=>s.trim())
+      .find(s=>s&&!/chapter|\bch\b|\d{3,}/i.test(s)&&!s.toLowerCase().replace(/\s/g,'').includes(host));
+    if(part)novel=safeTitle(part);
+  }
+  const chapterNum=chapterNumberFromText(parsed.title)??chapterNumberFromText(new URL(url).pathname)??null;
+  const chapterTitle=(parsed.title||'').replace(/^\s*chapter\s*\d+\s*[:\-–—.]?\s*/i,'').trim();
+  return {novel:novel||new URL(url).hostname.replace(/^www\./,''),chapterNum,chapterTitle,url,next:next||'',prev:prev||''};
+}
+function deriveBookMeta(book){
+  if(book.meta&&(book.meta.novel||book.meta.chapterNum))return book.meta;
+  const first=(book.text||'').split('\n').find(line=>line.trim())||'';
+  const num=chapterNumberFromText(first);
+  return {
+    novel:'',chapterNum:num,
+    chapterTitle:num?first.replace(/^\s*chapter\s*\d+\s*[:\-–—.]?\s*/i,'').trim().slice(0,80):''
+  };
+}
+
+/* Library */
+async function renderLibrary(){
+  const list=$('library-list');
+  list.replaceChildren();
+  let books=[];
+  try{books=await getLibrary();}
+  catch(error){libraryError=error.message||String(error);}
+  if(!books.length){
+    list.textContent='No saved books yet.'+(libraryError?' (Storage problem: '+libraryError+')':'');
+    return;
+  }
+
+  books.sort((a,b)=>b.date-a.date).forEach(book=>{
+    const row=document.createElement('div');
+    row.className='book-card flex items-center justify-between p-3 rounded-lg border';
+    row.style.borderColor='var(--control-bd)';
+    const meta=deriveBookMeta(book);
+    const title=document.createElement('button');
+    title.className='text-left flex-1 min-w-0';
+    const name=document.createElement('div');
+    name.className='font-semibold truncate';
+    name.textContent=meta.novel||book.title;
+    title.appendChild(name);
+    if(meta.chapterNum||meta.chapterTitle){
+      const chapter=document.createElement('div');
+      chapter.className='text-xs truncate';
+      chapter.style.color='var(--accent, #e5a93a)';
+      chapter.textContent=(meta.chapterNum?'Chapter '+meta.chapterNum:'')
+        +(meta.chapterNum&&meta.chapterTitle?' · ':'')+(meta.chapterTitle||'');
+      title.appendChild(chapter);
+    }
+    const info=document.createElement('div');
+    info.className='text-[11px]';
+    info.style.color='var(--muted)';
+    let pageNote='';
+    try{
+      const pos=JSON.parse(localStorage.getItem(POS_KEY)||'{}')[book.id];
+      if(pos&&typeof pos.p==='number')pageNote=' · stopped at page '+(pos.p+1);
+    }catch(_){}
+    info.textContent=new Date(book.date).toLocaleDateString()+pageNote;
+    title.appendChild(info);
+    title.addEventListener('click',async()=>{
+      await loadNewText(book.text,book.title,book.id,book.meta||null);
+      if(meta.url&&(meta.next||meta.prev))appState.web={next:meta.next||'',prev:meta.prev||''};
+      $('library-modal').classList.add('hidden');
+      showReaderView();
+    });
+    const remove=document.createElement('button');
+    remove.className='text-red-400 px-3';
+    remove.textContent='×';
+    remove.addEventListener('click',async()=>{await deleteFromLibrary(book.id);renderLibrary();});
+    row.append(title,remove);
     list.appendChild(row);
   });
-  if (voices.length > interesting.length) {
-    const more = document.createElement('div');
-    more.textContent = `… and ${voices.length - interesting.length} more (see Settings → Voice)`;
-    list.appendChild(more);
-  }
 }
+$('library-btn').addEventListener('click',()=>{
+  renderLibrary();
+  $('library-modal').classList.remove('hidden');
+});
+$('close-library-btn').addEventListener('click',()=>$('library-modal').classList.add('hidden'));
 
-function checkVoiceManager() {
-  // Force a voices refresh (some browsers only populate after onvoiceschanged)
-  if (synth) {
-    populateVoices();
-    // Chrome sometimes needs a tick
-    setTimeout(() => {
-      populateVoices();
-      refreshSystemVoiceStatus();
-    }, 200);
-  }
-  refreshSystemVoiceStatus();
-  $('voice-manager-modal').classList.remove('hidden');
-  renderCachedPiperVoices();
-  if (!piperCatalogLoaded) loadPiperCatalog();
-}
-
-$('voice-manager-btn').addEventListener('click', checkVoiceManager);
-$('close-voice-manager-btn').addEventListener('click', () => $('voice-manager-modal').classList.add('hidden'));
-$('load-piper-catalog').addEventListener('click', loadPiperCatalog);
-$('piper-search').addEventListener('input', () => { if (piperCatalogLoaded) renderPiperCatalog(); });
-
-if ($('refresh-voices-btn')) {
-  $('refresh-voices-btn').addEventListener('click', () => {
-    if (synth && synth.getVoices) {
-      // Trigger voiceschanged on some browsers
-      const dummy = new SpeechSynthesisUtterance('');
-      dummy.volume = 0;
-      try { synth.speak(dummy); synth.cancel(); } catch (_) {}
-    }
-    populateVoices();
-    setTimeout(refreshSystemVoiceStatus, 300);
-    setStatus('Voice list refreshed');
+/* Bookmarks */
+$('bookmark-btn').addEventListener('click',()=>{
+  if(!appState.currentBookId)return;
+  const label=prompt('Bookmark name:',`Page ${appState.currentPageIndex+1}`);
+  if(!label)return;
+  appState.bookmarks.push({
+    bookId:appState.currentBookId,page:appState.currentPageIndex,
+    sentence:appState.currentSentenceIndex,label
+  });
+  localStorage.setItem(BM_KEY,JSON.stringify(appState.bookmarks));
+  setStatus('Bookmark saved');
+});
+function renderBookmarks(){
+  const list=$('bookmarks-list');
+  list.replaceChildren();
+  const entries=appState.bookmarks.filter(b=>b.bookId===appState.currentBookId);
+  if(!entries.length){list.textContent='No bookmarks for this book.';return;}
+  entries.forEach(bookmark=>{
+    const button=document.createElement('button');
+    button.className='control-btn w-full text-left p-3 rounded-lg';
+    button.textContent=bookmark.label;
+    button.addEventListener('click',async()=>{
+      await goToPage(bookmark.page);
+      appState.currentSentenceIndex=bookmark.sentence;
+      updateHighlights();
+      $('bookmarks-modal').classList.add('hidden');
+    });
+    list.appendChild(button);
   });
 }
-
-$('install-tts-btn').addEventListener('click', () => {
-  // Try Android TTS settings intent first; otherwise show platform-agnostic help
-  const isAndroid = /Android/i.test(navigator.userAgent);
-  if (isAndroid) {
-    window.location.href = 'intent:#Intent;action=com.android.settings.TTS_SETTINGS;end';
-    setTimeout(() => {
-      alert('If settings did not open, go to:\nSettings → System → Languages & input → Text-to-speech output');
-    }, 1200);
-  } else {
-    alert(
-      'Open your system speech settings:\n\n' +
-      'Windows: Settings → Time & language → Language & region\n' +
-      '  (Add language → Urdu → enable Text-to-speech)\n\n' +
-      'Also try: Settings → Time & language → Speech → Manage voices\n\n' +
-      'After installing, return here and tap “Refresh voice list”.'
-    );
-  }
+$('view-bookmarks-btn').addEventListener('click',()=>{
+  renderBookmarks();
+  $('bookmarks-modal').classList.remove('hidden');
 });
+$('close-bookmarks-btn').addEventListener('click',()=>$('bookmarks-modal').classList.add('hidden'));
 
-/* ---------- Web Fetch & Pronunciations (Preserved) ---------- */
-function extractWebTitle(text, url) {
-  // Prefer explicit Title: line returned by jina.ai / reader proxies
-  const titleLine = text.match(/^\s*Title:\s*(.+)$/im);
-  if (titleLine && titleLine[1].trim()) {
-    return titleLine[1].trim().replace(/\s+/g, ' ').slice(0, 90);
-  }
-  // First markdown heading (often the chapter / article title)
-  const heading = text.match(/^#{1,3}\s+(.+)$/m);
-  if (heading && heading[1].trim()) {
-    return heading[1].trim().replace(/\s+/g, ' ').slice(0, 90);
-  }
-  // Fallback: hostname + last meaningful path segment (helps surface chapter numbers)
-  try {
-    const u = new URL(url.startsWith('http') ? url : 'https://' + url);
-    const segments = u.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
-    const last = segments.length ? decodeURIComponent(segments[segments.length - 1]).replace(/[-_]+/g, ' ') : '';
-    if (last && last.length > 1) return `${u.hostname} · ${last}`.slice(0, 90);
-    return u.hostname;
-  } catch (_) {
-    return (url || 'Web page').slice(0, 60);
-  }
-}
-
-$('link-btn').addEventListener('click', () => { linkStatus.textContent = ''; linkModal.classList.remove('hidden'); });
-$('close-link-btn').addEventListener('click', () => linkModal.classList.add('hidden'));
-$('load-url-btn').addEventListener('click', async () => {
-  const url = urlInput.value.trim(); if(!url) return;
-  linkStatus.textContent = 'Fetching...';
-  try {
-    const res = await fetch('https://r.jina.ai/' + url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
-    const title = extractWebTitle(text, url);
-    await loadNewText(text, title);
-    linkModal.classList.add('hidden');
-    setStatus('Ready · ' + title);
-  } catch(e) {
-    linkStatus.textContent = 'Failed to fetch: ' + (e.message || 'network error');
-  }
-});
-
-const pronModal = $('pronunciations-modal');
-$('pronunciations-btn').addEventListener('click', () => { renderPronunciationRows(); pronModal.classList.remove('hidden'); });
-$('close-modal-btn').addEventListener('click', () => pronModal.classList.add('hidden'));
-function pronRowHTML(word='', say=''){ return `<input type="text" value="${word}" placeholder="Word" class="word-key control-btn px-2.5 py-1.5 rounded text-xs flex-1"><span class="text-xs" style="color:var(--muted);">\u2192</span><input type="text" value="${say}" placeholder="Pronounce as" class="word-val control-btn px-2.5 py-1.5 rounded text-xs flex-1"><button class="remove-row-btn text-red-400 hover:text-red-300 px-2 font-bold text-sm">&times;</button>`; }
-function renderPronunciationRows(){ const c = $('pronunciation-list'); c.innerHTML = ''; Object.entries(appState.customPronunciations).forEach(([w,s]) => { const row = document.createElement('div'); row.className = 'flex items-center gap-2'; row.innerHTML = pronRowHTML(w,s); row.querySelector('.remove-row-btn').addEventListener('click', () => row.remove()); c.appendChild(row); }); }
-$('add-pronunciation-row').addEventListener('click', () => { const row = document.createElement('div'); row.className = 'flex items-center gap-2'; row.innerHTML = pronRowHTML(); row.querySelector('.remove-row-btn').addEventListener('click', () => row.remove()); $('pronunciation-list').appendChild(row); });
-$('save-pronunciations-btn').addEventListener('click', () => { const rules = {}; document.querySelectorAll('#pronunciation-list > div').forEach(r => { const k = r.querySelector('.word-key').value.trim(), v = r.querySelector('.word-val').value.trim(); if(k && v) rules[k] = v; }); appState.customPronunciations = rules; try{ localStorage.setItem(PRON_KEY, JSON.stringify(rules)); }catch(e){} pronModal.classList.add('hidden'); });
-
-/* ---------- Init ---------- */
-function populateVoices(){
-  if(!synth) return;
-  appState.voices = synth.getVoices();
-  const previousName = appState.selectedVoice ? appState.selectedVoice.name : null;
-  voiceSelect.innerHTML = '';
-  if (!appState.voices.length) {
-    const o = document.createElement('option');
-    o.value = '';
-    o.textContent = 'No system voices found';
-    voiceSelect.appendChild(o);
-    return;
-  }
-  // Sort: local / preferred languages first, then name
-  const sorted = [...appState.voices].sort((a, b) => {
-    const al = (a.lang || '').toLowerCase();
-    const bl = (b.lang || '').toLowerCase();
-    if (al.startsWith('en') !== bl.startsWith('en')) return al.startsWith('en') ? -1 : 1;
-    if (al.startsWith('ur') !== bl.startsWith('ur')) return al.startsWith('ur') ? -1 : 1;
-    return (a.name || '').localeCompare(b.name || '');
-  });
-  appState.voices = sorted;
-  sorted.forEach((v, i) => {
-    const o = document.createElement('option');
-    o.value = i;
-    o.textContent = `${v.name} (${v.lang})${v.localService ? ' · local' : ''}`;
-    voiceSelect.appendChild(o);
-  });
-  let idx = 0;
-  if (previousName) {
-    const found = sorted.findIndex(v => v.name === previousName);
-    if (found >= 0) idx = found;
-  }
-  appState.selectedVoice = sorted[idx];
-  voiceSelect.value = idx;
-}
-if(synth && synth.onvoiceschanged !== undefined) synth.onvoiceschanged = populateVoices;
-voiceSelect.addEventListener('change', e => {
-  const i = parseInt(e.target.value, 10);
-  if (!isNaN(i) && appState.voices[i]) {
-    appState.selectedVoice = appState.voices[i];
-    saveSettings();
-    // If already speaking, restart with the new voice
-    if (appState.isPlaying && !appState.isPaused) {
-      const keepIdx = appState.currentSentenceIndex;
-      stopSpeech();
-      appState.currentSentenceIndex = keepIdx;
-      speakCurrentSentence();
-    }
-  }
-});
-
+/* Initialize */
 loadSettings();
-// Ensure UI shows defaults even if nothing was stored
-if (!speedSlider.value || speedSlider.value === '100') applySpeechRate(appState.speechRate || 1);
-if (fontSizeSlider && !fontSizeSlider.value) applyFontSize(appState.fontSize || 19);
-applyTheme(appState.darkMode);
 populateVoices();
-window.onload = () => {
-  parseTextIntoStructure("Welcome to Pro Reader.\n\nOpen a file from your device to start reading. Your books are saved automatically to your local library.\n\nUse the settings to change highlighting modes and enable auto-translation.");
-  setSidebarMode('pages');
-  goToPage(0);
-};
+applyTheme(appState.darkMode);
+parseText(
+  'Welcome to Ultra Pro Reader.\n\nOpen a file, paste text, or use Website to view a website. '+
+  'Use Website to view a page and read it aloud.'
+);
+renderSidebar();
+goToPage(0);
 </script>
 </body>
 </html>
